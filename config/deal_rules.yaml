@@ -1,0 +1,22 @@
+# Deal detection thresholds (architecture doc section 6). The headline
+# threshold is config, not code (assumption A6).
+deal_rules:
+  min_discount_pct: 50.0
+  min_saving_cents: 1000          # a $12 lure at $6 is not the product
+  held_review_upper_pct: 85.0     # <=85% publishes automatically
+  implausible_discount_pct: 95.0  # >95% rejected outright; 85-95% HELD_REVIEW
+  claimed_inflated_ratio: 1.25    # claimed > 1.25x verified reference -> flagged inflated
+  reference:
+    own_history_min_days: 21
+    own_history_min_span_days: 30
+    own_history_window_days: 90
+    cross_retailer_max_age_days: 7
+  confirm:
+    min_delay_minutes: 10         # C1
+    deadline_hours: 3
+    max_price_increase_pct: 2.0   # C6
+  observation_guards:
+    large_move_min_pct: 35.0      # below this fraction of last OK price -> SUSPECT large_move
+    large_move_max_pct: 300.0     # above this multiple of last OK price -> SUSPECT large_move
+    unit_mismatch_tolerance_pct: 5.0
+    discovery_collapse_pct: 70.0

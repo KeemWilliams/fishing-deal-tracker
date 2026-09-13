@@ -1,0 +1,13 @@
+# Category price floors/ceilings (integer cents) used by the observation
+# quality guards (architecture doc 6.2) and rule saving-floor checks (6.3).
+# A price outside [floor, ceiling] is flagged SUSPECT `out_of_band`, not
+# rejected outright -- see fpt/pipeline/validate.py.
+categories:
+  rod:      {floor_cents: 1500,  ceiling_cents: 200000}
+  reel:     {floor_cents: 1500,  ceiling_cents: 150000}
+  combo:    {floor_cents: 2000,  ceiling_cents: 200000}
+  soft_bait: {floor_cents: 150,  ceiling_cents: 20000}
+  hard_bait: {floor_cents: 300,  ceiling_cents: 20000}
+  line:     {floor_cents: 300,   ceiling_cents: 20000}
+  terminal: {floor_cents: 100,   ceiling_cents: 20000}
+  other:    {floor_cents: 100,   ceiling_cents: 200000}

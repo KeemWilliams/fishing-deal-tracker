@@ -1,0 +1,29 @@
+# Discovery pages this coder owns (Tackle Warehouse). Academy/J&H entries
+# are added by the peer coder owning those adapters. Full TW catpage-CLEAR*
+# category list is completed in architecture doc task T6; these are the
+# categories confirmed live during adapter development (2026-09-12).
+discovery_pages:
+  - retailer: tackle_warehouse
+    page_type: CLEARANCE_LISTING
+    url: "https://www.tacklewarehouse.com/catpage-CLEARRODSPP.html"
+    category_hint: rod
+    interval_minutes: 240
+    max_pages: 10
+  - retailer: tackle_warehouse
+    page_type: CLEARANCE_LISTING
+    url: "https://www.tacklewarehouse.com/catpage-CLEARREELPP.html"
+    category_hint: reel
+    interval_minutes: 240
+    max_pages: 10
+  - retailer: tackle_warehouse
+    page_type: CLEARANCE_LISTING
+    url: "https://www.tacklewarehouse.com/catpage-CLEARHRDBTS.html"
+    category_hint: hard_bait
+    interval_minutes: 240
+    max_pages: 10
+  - retailer: tackle_warehouse
+    page_type: USED_LISTING
+    url: "https://www.tacklewarehouse.com/catpage-USED.html"
+    category_hint: other
+    interval_minutes: 120
+    max_pages: 10

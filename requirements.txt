@@ -1,0 +1,9 @@
+# Fishing Gear Deal Tracker — pinned dependencies.
+# HTTP-only path: plain Fetcher first (config flag for stealth escalation later).
+# Do NOT run `scrapling install` unless a retailer genuinely requires JS rendering —
+# this pipeline is designed to work without Playwright browser binaries.
+
+scrapling[fetchers]==0.4.11
+PyYAML==6.0.3
+requests==2.34.2
+psycopg[binary]==3.2.4

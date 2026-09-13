@@ -1,0 +1,31 @@
+# Retailer policy config (architecture doc 3.3). Academy and J&H Tackle
+# blocks are owned by a peer coder; only the tackle_warehouse entry below
+# is authoritative for this task. min_delay_s / caps are conservative
+# defaults per the politeness rule (7.2) -- 8-10s floor plus jitter, no
+# stealth, no proxy.
+retailers:
+  - slug: tackle_warehouse
+    name: "Tackle Warehouse"
+    base_url: "https://www.tacklewarehouse.com"
+    adapter_slug: tackle_warehouse
+    enabled: true
+    policy:
+      min_delay_s: 10
+      jitter_s: 5
+      max_requests_per_hour: 90
+      max_requests_per_day: 1200
+      reserved_share: {CONFIRM: 0.15, HOT: 0.15}
+      quiet_hours_utc: null
+      timeout_s: 30
+      retry_on: [500, 502, 503, 504, "timeout"]
+      max_retries: 1
+      retry_backoff_s: 120
+      breaker:
+        consecutive_blocks: 5
+        block_rate_threshold: 0.20
+        block_rate_min_sample: 20
+        cooldown_hours: 12
+        disable_after_trips_in_48h: 2
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500

@@ -1,0 +1,4 @@
+# Brand alias -> canonical name mapping. Empty at MVP launch; populated as
+# cross-retailer brand-name spelling mismatches are discovered (e.g. "St
+# Croix" vs "St. Croix").
+brand_aliases: {}

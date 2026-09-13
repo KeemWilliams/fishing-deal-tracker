@@ -1,0 +1,23 @@
+# Per-retailer condition wording -> canonical Condition enum value.
+# Wording keys are matched lowercased, whitespace-trimmed. An entry that
+# is present here but not observed on a live page is harmless; an entry
+# observed on a live page but absent here surfaces as SUSPECT
+# `condition_unknown` (or Condition.USED_UNGRADED on a USED page type) --
+# see fpt/core/conditions.py.
+conditions:
+  # Tackle Warehouse's used-gear product pages carry no formal grade field.
+  # Condition wording is embedded in free text in the "Item Condition"
+  # description paragraph, e.g. "MSRP $299.99 - Excellent condition. Handle
+  # slightly dirty...". The adapter extracts the leading phrase before
+  # " condition" and looks it up here. Only "Excellent" has been observed
+  # live (2026-09-12, descpage-USED1.html); the rest are a best-effort
+  # mapping pending more used-listing samples -- see adapter HANDOFF.
+  tackle_warehouse:
+    "new": NEW
+    "excellent": USED_LIKE_NEW
+    "like new": USED_LIKE_NEW
+    "very good": USED_VERY_GOOD
+    "good": USED_GOOD
+    "fair": USED_ACCEPTABLE
+    "acceptable": USED_ACCEPTABLE
+    "used": USED_UNGRADED
