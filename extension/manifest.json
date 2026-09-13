@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Fishing Deal Capture (personal use)",
+  "version": "0.1.0",
+  "description": "Records the price you're already looking at on sites the tracker doesn't auto-scrape (e.g. Scheels). Personal use only; no analytics, no PII.",
+  "minimum_chrome_version": "116",
+
+  "permissions": ["storage"],
+
+  "host_permissions": [
+    "https://www.scheels.com/*",
+    "https://www.academy.com/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["https://www.scheels.com/p/*", "https://www.academy.com/p/*"],
+      "js": ["lib/extractor.js", "lib/site-configs.js", "content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "options_page": "options.html",
+
+  "action": {
+    "default_title": "Fishing Deal Capture"
+  }
+}

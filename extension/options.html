@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Fishing Deal Capture — Settings</title>
+    <style>
+      body { font: 14px system-ui, sans-serif; max-width: 480px; margin: 24px auto; padding: 0 16px; }
+      label { display: block; margin-top: 12px; font-weight: 600; }
+      input { width: 100%; padding: 6px 8px; margin-top: 4px; box-sizing: border-box; }
+      button { margin-top: 16px; padding: 8px 16px; }
+      #status { margin-top: 10px; color: #2e7d32; }
+      p.hint { color: #555; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <h2>Fishing Deal Capture</h2>
+    <p class="hint">
+      Personal-use capture endpoint. Only used on the retailer pages listed in the extension's
+      permissions (Scheels, Tackle Warehouse). Nothing is sent anywhere else.
+    </p>
+
+    <label for="endpoint">Ingest endpoint URL</label>
+    <input id="endpoint" type="url" placeholder="http://localhost:8787/v1/captures" />
+
+    <label for="token">Bearer token (optional, matches FPT_CAPTURE_TOKEN on the server)</label>
+    <input id="token" type="password" placeholder="leave blank if the server has no token set" />
+
+    <button id="save">Save</button>
+    <div id="status"></div>
+
+    <script src="options.js"></script>
+  </body>
+</html>

@@ -1,0 +1,41 @@
+<!doctype html>
+<!--
+  Hand-written fixture. NOT fetched from scheels.com -- Scheels' own product-data endpoints are
+  robots.txt-disallowed for our identified crawler UA (see knowledge/research/fishing-gear-price-
+  tracker-scrape-feasibility-2026-09-12.md), which is exactly why the browser-capture path exists
+  instead of a scraper adapter. This fixture models the well-documented, widely-used
+  schema.org/Product JSON-LD shape that Salesforce Commerce Cloud storefronts (the platform
+  Scheels runs on) emit for SEO, plus a plausible strikethrough "was" price DOM element, so
+  lib/extractor.js's extraction logic can be exercised without ever requesting a live page.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>St. Croix Triumph Spinning Rod | Scheels</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "@id": "https://www.scheels.com/p/st-croix-triumph-spinning-rod/123456.html",
+        "name": "St. Croix Triumph Spinning Rod",
+        "sku": "TSR76MF2",
+        "brand": { "@type": "Brand", "name": "St. Croix" },
+        "offers": {
+          "@type": "Offer",
+          "url": "https://www.scheels.com/p/st-croix-triumph-spinning-rod/123456.html",
+          "priceCurrency": "USD",
+          "price": 64.97,
+          "itemCondition": "https://schema.org/NewCondition",
+          "availability": "https://schema.org/InStock"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="pdp-price-block">
+      <span class="strike-through-price">$129.99</span>
+      <span class="sale-price">$64.97</span>
+    </div>
+    <div data-testid="pdp-selected-variant-label">7'6" Medium, Fast</div>
+  </body>
+</html>
