@@ -1,0 +1,42 @@
+name: Daily crawl
+
+# Personal fishing deal tracker: runs the polite crawl on GitHub's hosted
+# runners (clean ~7GB, generous time limit) against a Neon Postgres, instead
+# of the memory-pressured Coolify host. Two passes ~30 min apart so a deal
+# found in the first pass gets its confirming re-check in the second.
+# Big-box retailers (Bass Pro/Cabela's/Dick's) stay disabled in config:
+# GitHub runners are datacenter IPs that Akamai blocks, same as before.
+
+on:
+  schedule:
+    - cron: "7 10 * * *"    # ~06:07 America/New_York (EDT); ~07:07 in winter
+    - cron: "37 10 * * *"   # confirmation pass, 30 min later
+  workflow_dispatch: {}      # manual "Run workflow" button for testing
+
+concurrency:
+  group: fishing-crawl
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Apply migrations (idempotent)
+        run: python deploy/migrate.py
+
+      - name: Run crawl tick
+        run: python run.py tick
