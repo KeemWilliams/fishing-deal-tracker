@@ -196,10 +196,16 @@ def insert_observation(
     adapter_version: str = "test-harness-1",
     snapshot_ref: str = "test-harness",
     currency: str | None = None,
+    shipping_cents: int | None = None,
 ) -> int:
     """`currency` defaults to None so the column's own DB-side DEFAULT
     ('USD', added in migration 014) is exercised unless a test explicitly
-    passes a value (e.g. to prove the format CHECK rejects 'usd')."""
+    passes a value (e.g. to prove the format CHECK rejects 'usd').
+
+    `shipping_cents` defaults to None (unknown) -- pass an explicit value
+    (0 for free shipping, or a positive int) when a test needs a USED-lane
+    deal to be export-eligible under the L2 "known shipping" guard
+    (fpt/export/queries.py)."""
     columns = [
         "offer_id", "crawl_task_id", "task_kind", "observed_at", "observed_date_et",
         "price_cents", "claimed_reference_cents", "claimed_reference_kind",
@@ -217,6 +223,9 @@ def insert_observation(
     if currency is not None:
         columns.append("currency")
         values.append(currency)
+    if shipping_cents is not None:
+        columns.append("shipping_cents")
+        values.append(shipping_cents)
 
     placeholders = ", ".join(["%s"] * len(values))
     cur.execute(

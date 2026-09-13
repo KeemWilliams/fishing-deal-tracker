@@ -88,6 +88,16 @@ def get_or_create_crawl_task(
 
 
 def find_existing_observation_by_snapshot(cur, *, offer_id: int, snapshot_ref: str) -> int | None:
+    """Security review M5: an empty/falsy `snapshot_ref` must NEVER be
+    treated as a dedupe key -- `fpt.fetch.http_fetcher.HttpFetcher` now
+    raises rather than ever returning one (a snapshot write failure is a
+    failed fetch), but this is defense in depth against any OTHER
+    `Fetcher` implementation (a future adapter_kind, a test double) that
+    might still produce one. Without this guard, two unrelated fetches
+    that both failed to get a real ref would look like replays of each
+    other and the second would be silently dropped."""
+    if not snapshot_ref:
+        return None
     cur.execute(
         "SELECT id FROM price_observations WHERE offer_id = %s AND snapshot_ref = %s LIMIT 1",
         (offer_id, snapshot_ref),

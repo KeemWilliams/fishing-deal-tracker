@@ -55,6 +55,22 @@ class ConfirmContext:
     confirming_price_cents_for_floor: int
     category_floor_cents: int | None
 
+    # H3/H4: the reference offer's own unit_count (from the reference
+    # lookup) vs this offer's own stored unit_count -- C8 rejects a
+    # reference whose pack count doesn't match, since a per-piece price
+    # compared against a multi-pack price (or vice versa) is not the same
+    # product even when GTIN-linked to the same variant_id.
+    recomputed_reference_unit_count: int | None = None
+    offer_unit_count: int | None = None
+
+    # L1: the freshly resolved reference price, persisted onto the deal row
+    # by the caller (fpt/store/deals.py apply_confirm_result) when this
+    # context's verdict is ACTIVE/HELD_REVIEW -- kept on the context (not
+    # just computed ad hoc by the caller) so the number written to the DB
+    # is provably the SAME number this module's checks were evaluated
+    # against.
+    reference_cents: int | None = None
+
     min_delay_minutes: int = 10
     max_price_increase_pct: float = 2.0
     min_discount_pct: float = 50.0
@@ -119,11 +135,22 @@ def confirm_candidate(ctx: ConfirmContext) -> ConfirmResult:
     if ctx.recomputed_discount_pct < ctx.min_discount_pct:
         return ConfirmResult(status="REJECTED", reject_reason="below_threshold_on_confirm")
 
-    # C8: reference used is for the same variant_key and condition group.
+    # C8: reference used is for the same variant_key, unit_count, and
+    # condition group -- the reference OFFER's own identity (from the
+    # reference lookup), not this offer's identity re-asserted at itself.
+    # For a used offer's U1 reference and a NEW offer's R2 cross-retailer
+    # reference, the reference is a genuinely different offer/listing, so
+    # this is the guard that actually catches a mis-scoped reference.
     if (
         ctx.recomputed_reference_variant_key is not None
         and ctx.offer_variant_key is not None
         and ctx.recomputed_reference_variant_key != ctx.offer_variant_key
+    ):
+        return ConfirmResult(status="REJECTED", reject_reason="reference_scope_mismatch")
+    if (
+        ctx.recomputed_reference_unit_count is not None
+        and ctx.offer_unit_count is not None
+        and ctx.recomputed_reference_unit_count != ctx.offer_unit_count
     ):
         return ConfirmResult(status="REJECTED", reject_reason="reference_scope_mismatch")
     if (

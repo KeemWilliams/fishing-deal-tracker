@@ -1,0 +1,44 @@
+{
+  "_meta": {
+    "captured": "2026-09-12",
+    "source": "https://vw1136.a.searchspring.io/api/search/search.json?siteId=vw1136&resultsFormat=native&page=1&resultsPerPage=24&bgfilter.categories_hierarchy=Clearance%3ERods",
+    "note": "Live Searchspring API response for FishUSA clearance rods sub-facet. Trimmed to 2 sample results + facet block from a 24-item page; totalResults for this filter was 52, matching the sitewide facet count exactly. hierarchyDelimiter is a literal '>' character; category value passed as query param must be unencoded '>' (URL-encoded by the client to %3E), NOT the HTML entity '&gt;' seen in the JSON payload text.",
+    "top_level_clearance_total": 956,
+    "sub_facet_counts": {
+      "Rods": 52, "Reels": 40, "Rod & Reel Combos": 12, "Lures & Bait": 391,
+      "Line and Terminal Tackle": 97, "Kayak Fishing": 177, "Boating & Trolling": 35,
+      "Wading": 6, "Apparel": 57, "Ice Fishing": 105, "Fishing Accessories": 74
+    }
+  },
+  "pagination": {"totalResults": 52, "begin": 1, "end": 24, "currentPage": 1, "totalPages": 3, "perPage": 24},
+  "results_sample": [
+    {
+      "brand": "Denali",
+      "name": "Denali Myriad Walleye Trolling Rod",
+      "url": "/Denali-Myriad-Walleye-Trolling-Rods/",
+      "sku": "F14613",
+      "uid": "5302",
+      "price": "118.99",
+      "msrp": "139.99",
+      "ss_retail": "140",
+      "ss_on_sale": "1",
+      "ss_pct_off": "15",
+      "ss_in_stock": "1",
+      "custom_category_options_text": "4 Model Options",
+      "categories_hierarchy_includes": ["Clearance", "Clearance>Rods"]
+    },
+    {
+      "brand": "St. Croix",
+      "name": "St. Croix Triumph Salmon and Steelhead Spinning Rod",
+      "url": "/St-Croix-Triumph-Salmon-and-Steelhead-Rods/",
+      "sku": null,
+      "uid": "9223",
+      "price": null,
+      "msrp": null,
+      "ss_on_sale": "1",
+      "custom_category_options_text": "2 Model Options",
+      "categories_hierarchy_includes": ["Clearance", "Clearance>Rods"],
+      "note": "price/msrp truncated in this sample capture; full field present in live response, same shape as first item"
+    }
+  ]
+}

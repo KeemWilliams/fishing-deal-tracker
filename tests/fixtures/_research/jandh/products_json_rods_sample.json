@@ -1,0 +1,31 @@
+{
+  "_meta": {
+    "captured": "2026-09-12",
+    "source": "https://jandh.com/collections/rods/products.json?limit=2",
+    "note": "Shopify standard storefront JSON, plain HTTP, robots.txt allows /collections/rods. compare_at_price field exists per-variant but was null on both sampled products (no active discount at capture time). /collections/sale/products.json and /collections/clearance/products.json both returned {\"products\":[]} -- either those collection handles do not exist on this store or are currently empty; not distinguishable via this endpoint alone."
+  },
+  "products_sample": [
+    {
+      "id": 7676042838127,
+      "title": "Dark Matter John Skinner Jig and Bounce Spinning Rods",
+      "handle": "dark-matter-john-skinner-jig-and-bounce-spinning-rods",
+      "vendor": "Dark Matter",
+      "product_type": "Rods",
+      "tags": ["Discountable", "New In Store", "rods", "Spinning Rods"],
+      "variants": [
+        {
+          "id": 42624033718383,
+          "title": "6'2\" ML Moderate / Slate Blue",
+          "sku": "DMSJB62MLS",
+          "price": "219.99",
+          "compare_at_price": null,
+          "available": true
+        }
+      ]
+    }
+  ],
+  "empty_collection_checks": {
+    "https://jandh.com/collections/sale/products.json?limit=5": {"products": []},
+    "https://jandh.com/collections/clearance/products.json?limit=5": {"products": []}
+  }
+}

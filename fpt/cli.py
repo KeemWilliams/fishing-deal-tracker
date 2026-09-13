@@ -18,8 +18,11 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
+import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Callable
+from urllib.parse import urlparse
 
 import yaml
 
@@ -29,14 +32,21 @@ from fpt.db import DatabaseUnavailable, connect, table_exists
 from fpt.export.runner import run_export
 from fpt.export.storage import build_storage_from_env
 from fpt.fetch.blocks import detect_block_or_empty
+from fpt.fetch.fixture_fetcher import ClockedFixtureFetcher, FixtureFetcher
 from fpt.fetch.http_fetcher import HttpFetcher
 from fpt.fetch.fetcher import EgressConfig
-from fpt.fetch.robots import IDENTIFIED_USER_AGENT
+from fpt.fetch.redact import redact
+from fpt.fetch.robots import IDENTIFIED_USER_AGENT, RobotsGate
+from fpt.fetch.url_safety import UnsafeUrlError, check_url_safety, fetch_safely
 from fpt.pipeline.validate import (
     ObservationContext,
     ObservationInput,
     validate_observation,
 )
+from fpt.scheduler import enroller
+from fpt.scheduler.limiter import BreakerPolicy, RetailerLimiter, RetailerPolicy, effective_min_delay_s
+from fpt.scheduler.queue import drain_retailer_queue
+from fpt.store.observations import get_or_create_crawl_task
 from fpt.store.pipeline import ingest_parsed_listing
 
 CONFIG_DIR = Path(__file__).resolve().parent.parent / "config"
@@ -78,10 +88,50 @@ def _resolve_retailer_id(conn, slug: str) -> int | None:
         return row[0] if row else None
 
 
-def run_tick(*, max_discovery_pages: int | None = None, use_stealth: bool = False) -> dict:
-    started_at = datetime.now(timezone.utc)
-    fetcher = HttpFetcher(use_stealth=use_stealth)
+def _build_retailer_policy(policy_cfg: dict) -> RetailerPolicy:
+    breaker_cfg = policy_cfg.get("breaker", {})
+    return RetailerPolicy(
+        min_delay_s=policy_cfg.get("min_delay_s", 10),
+        jitter_s=policy_cfg.get("jitter_s", 5),
+        max_requests_per_hour=policy_cfg.get("max_requests_per_hour", 90),
+        max_requests_per_day=policy_cfg.get("max_requests_per_day", 1200),
+        reserved_share=dict(policy_cfg.get("reserved_share", {})),
+        breaker=BreakerPolicy(
+            consecutive_blocks=breaker_cfg.get("consecutive_blocks", 5),
+            block_rate_threshold=breaker_cfg.get("block_rate_threshold", 0.20),
+            block_rate_min_sample=breaker_cfg.get("block_rate_min_sample", 20),
+            cooldown_hours=breaker_cfg.get("cooldown_hours", 12),
+            disable_after_trips_in_48h=breaker_cfg.get("disable_after_trips_in_48h", 2),
+        ),
+    )
+
+
+def build_fixture_fetcher(manifest_path: str, *, now: datetime) -> ClockedFixtureFetcher:
+    """First-class no-network path for `fpt tick --fixtures-manifest`
+    (flagged missing by the TEST phase). See fpt/fetch/fixture_fetcher.py."""
+    return ClockedFixtureFetcher(FixtureFetcher.from_manifest(manifest_path), now=now)
+
+
+def run_tick(
+    *,
+    max_discovery_pages: int | None = None,
+    use_stealth: bool = False,
+    fetcher=None,
+    now: datetime | None = None,
+    resolver=None,
+    sleep_fn: Callable[[float], None] | None = None,
+) -> dict:
+    # Looked up on `time` at call time (not bound as a default parameter
+    # value) so `monkeypatch.setattr(cli_module.time, "sleep", ...)` in
+    # tests -- the only way to intercept sleeping through `main()`, which
+    # exposes no CLI flag for this -- actually takes effect. A default
+    # bound at `def` time would capture the original `time.sleep` function
+    # object once and ignore any later monkeypatch of the module attribute.
+    sleep_fn = sleep_fn or time.sleep
+    started_at = now or datetime.now(timezone.utc)
+    injected_fetcher = fetcher is not None
     egress = EgressConfig(mode="DIRECT")
+    robots_gate = RobotsGate()
 
     summary: dict = {
         "started_at": started_at.isoformat(),
@@ -100,18 +150,48 @@ def run_tick(*, max_discovery_pages: int | None = None, use_stealth: bool = Fals
         for retailer_cfg in _enabled_retailers():
             slug = retailer_cfg["slug"]
             adapter_slug = retailer_cfg.get("adapter_slug", slug)
+            base_url = retailer_cfg.get("base_url", "")
+            allowed_hosts = retailer_cfg.get("allowed_hosts") or []
             retailer_summary: dict = {"slug": slug, "pages": []}
+
+            if not allowed_hosts:
+                # Security review M3: no allowlist configured means no URL
+                # for this retailer can ever pass `check_url_safety` -- fail
+                # loud rather than silently fetching an unvalidated URL.
+                retailer_summary["error"] = "no_allowed_hosts_configured"
+                summary["retailers"].append(retailer_summary)
+                continue
 
             try:
                 adapter = get_adapter(adapter_slug)
             except Exception as exc:  # noqa: BLE001
-                retailer_summary["error"] = f"unregistered_adapter:{exc}"
+                retailer_summary["error"] = f"unregistered_adapter:{redact(str(exc))}"
                 summary["retailers"].append(retailer_summary)
                 continue
+
+            # Security review M2: `--use-stealth` alone is never enough --
+            # it must be combined with this retailer's own
+            # `stealth_approved: true` (default false for every retailer).
+            # An injected fetcher (tests, `--fixtures-manifest`) bypasses
+            # this entirely since it never touches a real network client.
+            if injected_fetcher:
+                retailer_fetcher = fetcher
+            else:
+                retailer_stealth = use_stealth and bool(retailer_cfg.get("stealth_approved", False))
+                retailer_fetcher = HttpFetcher(use_stealth=retailer_stealth)
 
             retailer_id = _resolve_retailer_id(conn, slug) if conn is not None else None
             if conn is not None and retailer_id is None:
                 retailer_summary["warning"] = "retailer not seeded in DB (see db/migrations/012); persistence skipped"
+
+            policy_cfg = dict(retailer_cfg.get("policy", {}))
+            crawl_delay = robots_gate.crawl_delay(
+                retailer_slug=slug, base_url=base_url, fetcher=retailer_fetcher, egress=egress,
+                user_agent=IDENTIFIED_USER_AGENT, timeout_s=30.0, allowed_hosts=allowed_hosts, resolver=resolver,
+            )
+            policy_cfg["min_delay_s"] = effective_min_delay_s(policy_cfg.get("min_delay_s", 10), crawl_delay)
+            limiter = RetailerLimiter(_build_retailer_policy(policy_cfg))
+            clock = started_at
 
             pages = _discovery_pages_for(slug)
             if max_discovery_pages is not None:
@@ -120,117 +200,228 @@ def run_tick(*, max_discovery_pages: int | None = None, use_stealth: bool = Fals
             for page_cfg in pages:
                 page_type = _page_type_for(page_cfg["page_type"])
                 category = page_cfg.get("category_hint", "other")
-                task = _FakeTask(task_id_counter, page_cfg["url"], page_type)
-                task_id_counter += 1
-                request = adapter.build_request(task)
-
                 page_result: dict = {"url": page_cfg["url"], "page_type": page_type.value}
-                try:
-                    response = fetcher.fetch(
-                        request, egress, IDENTIFIED_USER_AGENT, timeout_s=30.0
+
+                url = page_cfg["url"]
+                pages_fetched = 0
+                page_max = max(1, int(page_cfg.get("max_pages", 1)))
+
+                while url and pages_fetched < page_max:
+                    pages_fetched += 1
+
+                    parsed_url = urlparse(url)
+                    path = parsed_url.path + (f"?{parsed_url.query}" if parsed_url.query else "")
+                    robots_check = robots_gate.admits(
+                        retailer_slug=slug, base_url=base_url, path=path or "/", fetcher=retailer_fetcher,
+                        egress=egress, user_agent=IDENTIFIED_USER_AGENT, timeout_s=30.0,
+                        allowed_hosts=allowed_hosts, resolver=resolver,
                     )
-                except Exception as exc:  # noqa: BLE001
-                    page_result["error"] = f"fetch_failed:{exc}"
-                    retailer_summary["pages"].append(page_result)
-                    continue
+                    if not robots_check.allowed:
+                        page_result["outcome"] = "SKIPPED_ROBOTS"
+                        page_result["robots_reason"] = robots_check.reason
+                        break
 
-                sentinels = tuple(adapter.content_sentinels(page_type))
-                block_check = detect_block_or_empty(
-                    status=response.status,
-                    body=response.body,
-                    final_url=response.final_url,
-                    request_url=request.url,
-                    sentinels=sentinels,
-                )
-                page_result["outcome"] = block_check.outcome.value
-                page_result["block_signature"] = block_check.block_signature
+                    admitted, deny_reason = limiter.can_admit("DISCOVERY", now=clock)
+                    if not admitted:
+                        page_result["outcome"] = "SKIPPED_BUDGET"
+                        page_result["budget_reason"] = deny_reason
+                        break
 
-                # BLOCKED/EMPTY/etc: never parsed, never persisted -- no
-                # observation or deal is ever attempted from a non-OK fetch.
-                if block_check.outcome.value != "OK":
-                    retailer_summary["pages"].append(page_result)
-                    continue
+                    task = _FakeTask(task_id_counter, url, page_type)
+                    task_id_counter += 1
+                    request = adapter.build_request(task)
 
-                parse_result = adapter.parse(response)
-                page_result["parse_outcome"] = parse_result.outcome.value
-                page_result["discovered_count"] = len(parse_result.discovered)
-                page_result["listing_count"] = len(parse_result.listings)
-                page_result["warnings"] = list(parse_result.warnings)
-
-                # `parse_result.listings` is only ever populated for PRODUCT
-                # (or API_BATCH) pages -- a CLEARANCE_LISTING/USED_LISTING
-                # grid's rows come back as `parse_result.discovered` instead
-                # (architecture doc 3.1: a grid row is never an observation
-                # on its own). Enrolling a discovered item into its own
-                # product-page fetch is scheduler/enroller territory and is
-                # not built here (see fpt/store/pipeline.py module docstring
-                # and this task's HANDOFF) -- so today's discovery-only
-                # config produces zero listings here, and this loop is
-                # exercised by direct product-page fixtures in tests instead.
-                for listing in parse_result.listings:
-                    if conn is not None and retailer_id is not None:
-                        outcome = ingest_parsed_listing(
-                            conn,
-                            retailer_id=retailer_id,
-                            retailer_slug=slug,
-                            category=category,
-                            listing=listing,
-                            response=response,
-                            adapter_version=adapter.adapter_version,
+                    try:
+                        response = fetch_safely(
+                            retailer_fetcher, request, egress, IDENTIFIED_USER_AGENT, timeout_s=30.0,
+                            allowed_hosts=allowed_hosts, resolver=resolver,
                         )
-                        persisted_count += len(outcome.observations)
-                        for offer, recorded in zip(listing.offers, outcome.observations):
-                            all_observations.append(
-                                {
-                                    "retailer": slug,
-                                    "retailer_sku": listing.retailer_sku,
-                                    "price_cents": offer.price_cents,
-                                    "condition": offer.condition.value,
-                                    "quality": recorded.quality,
-                                    "reasons": recorded.reasons,
-                                    "was_duplicate": recorded.was_duplicate,
-                                }
+                    except UnsafeUrlError as exc:
+                        page_result["error"] = f"unsafe_url:{exc.reason}"
+                        break
+                    except Exception as exc:  # noqa: BLE001
+                        page_result["error"] = f"fetch_failed:{redact(str(exc))}"
+                        break
+
+                    limiter.record_request(now=clock)
+
+                    sentinels = tuple(adapter.content_sentinels(page_type))
+                    block_check = detect_block_or_empty(
+                        status=response.status,
+                        body=response.body,
+                        final_url=response.final_url,
+                        request_url=request.url,
+                        sentinels=sentinels,
+                    )
+                    limiter.record_outcome(blocked=block_check.outcome.value == "BLOCKED", now=clock)
+                    page_result["outcome"] = block_check.outcome.value
+                    page_result["block_signature"] = block_check.block_signature
+
+                    delay = limiter.next_delay_s()
+                    sleep_fn(delay)
+                    clock = clock + timedelta(seconds=delay)
+
+                    # BLOCKED/EMPTY/etc: never parsed, never persisted -- no
+                    # observation or deal is ever attempted from a non-OK fetch.
+                    if block_check.outcome.value != "OK":
+                        break
+
+                    # Robustness review M4: a hostile/malformed page must
+                    # never crash the whole tick.
+                    try:
+                        parse_result = adapter.parse(response)
+                    except RecursionError:
+                        page_result["error"] = "recursion_limit_exceeded"
+                        break
+                    except Exception as exc:  # noqa: BLE001
+                        page_result["error"] = f"parse_failed:{redact(str(exc))}"
+                        break
+
+                    page_result["parse_outcome"] = parse_result.outcome.value
+                    page_result["discovered_count"] = page_result.get("discovered_count", 0) + len(parse_result.discovered)
+                    page_result["listing_count"] = page_result.get("listing_count", 0) + len(parse_result.listings)
+                    page_result["warnings"] = list(parse_result.warnings)
+
+                    # `parse_result.listings` is only ever populated for
+                    # PRODUCT (or API_BATCH) pages -- a CLEARANCE_LISTING/
+                    # USED_LISTING grid's rows come back as
+                    # `parse_result.discovered` instead (architecture doc
+                    # 3.1: a grid row is never an observation on its own).
+                    # Enroll every discovered row into discovery_hits/
+                    # tracked_urls and (for new or fast-track items) a
+                    # QUEUED ENROLL crawl_task -- fpt/scheduler/queue.py
+                    # drains those PRODUCT-page fetches after this pages
+                    # loop, in the SAME tick, which is what actually
+                    # produces listings/observations/deals from a real
+                    # discovery sweep.
+                    if conn is not None and retailer_id is not None and parse_result.discovered:
+                        enroll_cur = conn.cursor()
+                        discovery_page_id = enroller.get_or_create_discovery_page(
+                            enroll_cur, retailer_id=retailer_id, page_type=page_type, url=page_cfg["url"],
+                            category_hint=category, interval_minutes=page_cfg.get("interval_minutes", 1440),
+                            max_pages=page_cfg.get("max_pages", 1), seen_at=response.fetched_at,
+                            item_count=len(parse_result.discovered),
+                        )
+                        disc_crawl_task_id = get_or_create_crawl_task(
+                            enroll_cur, retailer_id=retailer_id, kind="DISCOVERY", page_type=page_type,
+                            url=url, dedupe_key=f"DISCOVERY:{slug}:{url}:{response.snapshot_ref}",
+                        )
+                        enroll_outcome = enroller.enroll_discovery_page(
+                            enroll_cur, retailer_id=retailer_id, discovery_page_id=discovery_page_id,
+                            page_type=page_type, category_hint=category, crawl_task_id=disc_crawl_task_id,
+                            discovered=parse_result.discovered, seen_at=response.fetched_at,
+                            tracked_url_cap=retailer_cfg.get("tracked_url_cap"),
+                            allowed_hosts=allowed_hosts, resolver=resolver,
+                        )
+                        page_result["enrolled"] = {
+                            "hits": len(enroll_outcome.discovery_hit_ids),
+                            "tasks_enqueued": enroll_outcome.tasks_enqueued,
+                            "items_capped": enroll_outcome.items_capped,
+                            "items_unsafe": enroll_outcome.items_unsafe,
+                            "items_skipped": enroll_outcome.items_skipped,
+                        }
+
+                    next_url = parse_result.next_page_url
+                    if next_url:
+                        # Security review M3: pagination follows a URL the
+                        # RETAILER supplied in its own response -- validate
+                        # it exactly like any other outbound URL before
+                        # ever building a request from it.
+                        next_safety = check_url_safety(next_url, allowed_hosts=allowed_hosts, resolver=resolver)
+                        if not next_safety.allowed:
+                            page_result.setdefault("warnings", []).append(f"next_page_url_unsafe:{next_safety.reason}")
+                            next_url = None
+
+                    for listing in parse_result.listings:
+                        if conn is not None and retailer_id is not None:
+                            outcome = ingest_parsed_listing(
+                                conn,
+                                retailer_id=retailer_id,
+                                retailer_slug=slug,
+                                category=category,
+                                listing=listing,
+                                response=response,
+                                adapter_version=adapter.adapter_version,
                             )
-                        for action in outcome.deal_actions:
-                            if action.kind != "none":
-                                deal_actions.append(
+                            persisted_count += len(outcome.observations)
+                            for offer, recorded in zip(listing.offers, outcome.observations):
+                                all_observations.append(
                                     {
                                         "retailer": slug,
                                         "retailer_sku": listing.retailer_sku,
-                                        "kind": action.kind,
-                                        "deal_id": action.deal_id,
-                                        "confirm_status": action.confirm_status,
+                                        "price_cents": offer.price_cents,
+                                        "condition": offer.condition.value,
+                                        "quality": recorded.quality,
+                                        "reasons": recorded.reasons,
+                                        "was_duplicate": recorded.was_duplicate,
                                     }
                                 )
-                    else:
-                        # No live DB (or retailer not yet seeded): validate
-                        # only, matching the previous dry-run behavior.
-                        for offer in listing.offers:
-                            obs_input = ObservationInput(
-                                price_cents=offer.price_cents,
-                                currency="USD",
-                                category=category,
-                                claimed_reference_cents=offer.claimed_reference_cents,
-                                on_clearance=offer.on_clearance,
-                                unit_count=offer.unit_count,
-                                variant_key_observed=None,
-                                availability=offer.availability,
-                                condition_wording_mapped=offer.condition is not None,
-                                is_used_page_type=page_type == PageType.USED_LISTING,
-                            )
-                            result = validate_observation(obs_input, ObservationContext())
-                            all_observations.append(
-                                {
-                                    "retailer": slug,
-                                    "retailer_sku": listing.retailer_sku,
-                                    "price_cents": offer.price_cents,
-                                    "condition": offer.condition.value,
-                                    "quality": result.quality,
-                                    "reasons": result.reasons,
-                                }
-                            )
+                            for action in outcome.deal_actions:
+                                if action.kind != "none":
+                                    deal_actions.append(
+                                        {
+                                            "retailer": slug,
+                                            "retailer_sku": listing.retailer_sku,
+                                            "kind": action.kind,
+                                            "deal_id": action.deal_id,
+                                            "confirm_status": action.confirm_status,
+                                        }
+                                    )
+                        else:
+                            # No live DB (or retailer not yet seeded): validate
+                            # only, matching the previous dry-run behavior.
+                            for offer in listing.offers:
+                                obs_input = ObservationInput(
+                                    price_cents=offer.price_cents,
+                                    currency="USD",
+                                    category=category,
+                                    claimed_reference_cents=offer.claimed_reference_cents,
+                                    on_clearance=offer.on_clearance,
+                                    unit_count=offer.unit_count,
+                                    variant_key_observed=None,
+                                    availability=offer.availability,
+                                    condition_wording_mapped=offer.condition is not None,
+                                    is_used_page_type=page_type == PageType.USED_LISTING,
+                                )
+                                result = validate_observation(obs_input, ObservationContext())
+                                all_observations.append(
+                                    {
+                                        "retailer": slug,
+                                        "retailer_sku": listing.retailer_sku,
+                                        "price_cents": offer.price_cents,
+                                        "condition": offer.condition.value,
+                                        "quality": result.quality,
+                                        "reasons": result.reasons,
+                                    }
+                                )
+
+                    url = next_url
 
                 retailer_summary["pages"].append(page_result)
+
+            # Drain this retailer's QUEUED ENROLL/CONFIRM/HOT/BASELINE
+            # crawl_tasks within its rate-limit budget -- this is what
+            # actually performs the product-page fetches the enroller (and
+            # fpt/store/pipeline.py, on candidate detection) queued above,
+            # in the SAME tick where doing so respects the confirmation gap
+            # (a CONFIRM task's `not_before` is never before this tick's
+            # `now`, so it is only ever leased on a LATER tick).
+            if conn is not None and retailer_id is not None:
+                drain_result = drain_retailer_queue(
+                    conn, retailer_id=retailer_id, retailer_slug=slug, base_url=base_url, adapter=adapter,
+                    fetcher=retailer_fetcher, egress=egress, limiter=limiter, robots_gate=robots_gate,
+                    allowed_hosts=allowed_hosts, user_agent=IDENTIFIED_USER_AGENT, timeout_s=30.0,
+                    now=clock, resolver=resolver, sleep_fn=sleep_fn,
+                )
+                retailer_summary["queue"] = drain_result.tasks
+                for task_result in drain_result.tasks:
+                    for ingested in task_result.get("ingested", []):
+                        persisted_count += ingested["observations"]
+                        for kind in ingested["deal_actions"]:
+                            if kind != "none":
+                                deal_actions.append(
+                                    {"retailer": slug, "kind": kind, "source": task_result["kind"]}
+                                )
 
             summary["retailers"].append(retailer_summary)
 
@@ -270,6 +461,18 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Escalate to StealthyFetcher (never enabled by default; requires owner approval, see architecture doc 7.3/A4)",
     )
+    tick_parser.add_argument(
+        "--fixtures-manifest",
+        default=None,
+        help="Path to a JSON {url: file_path} manifest -- runs the tick with zero network access, "
+             "serving fixture bytes instead (see fpt/fetch/fixture_fetcher.py). Never contacts a real retailer.",
+    )
+    tick_parser.add_argument(
+        "--now",
+        default=None,
+        help="ISO-8601 timestamp to treat as 'now' for this tick (offline/testing use only -- "
+             "lets --fixtures-manifest runs simulate the passage of time between ticks without sleeping).",
+    )
 
     export_parser = subparsers.add_parser(
         "export", help="Build and publish the public deals feed (architecture doc 3.4)"
@@ -288,9 +491,15 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.command == "tick":
+        tick_now = datetime.fromisoformat(args.now) if args.now else None
+        tick_fetcher = None
+        if args.fixtures_manifest:
+            tick_fetcher = build_fixture_fetcher(args.fixtures_manifest, now=tick_now or datetime.now(timezone.utc))
         summary = run_tick(
             max_discovery_pages=args.max_discovery_pages,
             use_stealth=args.use_stealth,
+            fetcher=tick_fetcher,
+            now=tick_now,
         )
         json.dump(summary, sys.stdout, indent=2, default=str)
         sys.stdout.write("\n")

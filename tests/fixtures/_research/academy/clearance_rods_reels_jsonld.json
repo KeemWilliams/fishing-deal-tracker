@@ -1,0 +1,15 @@
+{
+  "_meta": {
+    "captured": "2026-09-12",
+    "source": "https://www.academy.com/c/academy-clearance/outdoors-clearance--1/fishing-clearance-items/rods-reels-clearance--1",
+    "method": "plain HTTP make_request, extracted script[type=application/ld+json] only",
+    "note": "Confirms prior research finding: ItemList JSON-LD gives current clearance price only, no MSRP/compare-at field. % off is not computable from this page alone; would need a second lookup against the regular-price page or product API for the same mpn."
+  },
+  "itemlist_sample": [
+    {"name": "Daiwa Laguna® Freshwater/Saltwater Casting Rod", "mpn": "201369450", "price": 8.99, "url": "https://www.academy.com/p/daiwa-laguna-freshwater-saltwater-casting-rod"},
+    {"name": "Daiwa Aird Coastal Inshore Saltwater Spinning Rod", "mpn": "113765843", "price": 39.97},
+    {"name": "Daiwa FT Surf M Saltwater Spinning Rod", "mpn": "110236962", "price": 24.97},
+    {"name": "ProFISHiency Krazy Americana 6 ft 8 in M Casting Fishing Rod", "mpn": "142036341", "price": 14.99},
+    {"name": "Abu Garcia Vendetta 7 ft 6 in H Casting Rod", "mpn": "130518086", "price": 89.95}
+  ]
+}

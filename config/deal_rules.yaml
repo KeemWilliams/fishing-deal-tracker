@@ -15,6 +15,11 @@ deal_rules:
     min_delay_minutes: 10         # C1
     deadline_hours: 3
     max_price_increase_pct: 2.0   # C6
+  expiry:
+    # H2: an ACTIVE deal expires if no fresh OK observation lands within
+    # this window (fpt.store.deals.expire_stale_deals, called once per
+    # tick) -- the "not_observed" trigger from architecture 6.3.
+    stale_hours: 24
   observation_guards:
     large_move_min_pct: 35.0      # below this fraction of last OK price -> SUSPECT large_move
     large_move_max_pct: 300.0     # above this multiple of last OK price -> SUSPECT large_move

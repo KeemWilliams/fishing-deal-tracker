@@ -121,6 +121,99 @@ def _group_disallows_everything(robots_text: str, group_name: str) -> bool:
     return False
 
 
+class RobotsGate:
+    """Per-retailer robots.txt admission, cached for one `fpt tick` run
+    (security review M2: "every fetch ... must pass robots.txt admission").
+
+    robots.txt is fetched at most ONCE per retailer per gate instance
+    (cheap re-checks of `check_admission`/`crawl_delay_seconds` against the
+    cached text for every subsequent path this tick), through the SAME
+    SSRF-guarded fetch path every other request uses
+    (`fpt.fetch.url_safety.fetch_safely`) -- robots.txt is fetched from the
+    retailer's own allowlisted host, never an arbitrary URL.
+    """
+
+    def __init__(self) -> None:
+        self._text_cache: dict[str, str | None] = {}
+
+    def _robots_text(
+        self,
+        *,
+        retailer_slug: str,
+        base_url: str,
+        fetcher,
+        egress,
+        user_agent: str,
+        timeout_s: float,
+        allowed_hosts,
+        resolver=None,
+    ) -> str | None:
+        if retailer_slug in self._text_cache:
+            return self._text_cache[retailer_slug]
+
+        # Local import: avoids a hard import-time dependency from this
+        # module (unit-tested with no fetch layer at all) on the fetch
+        # package's URL-safety module.
+        from fpt.core.models import FetchRequest, PageType
+        from fpt.fetch.url_safety import UnsafeUrlError, fetch_safely
+
+        robots_url = urljoin(base_url, "/robots.txt")
+        text: str | None
+        try:
+            request = FetchRequest(task_id=0, page_type=PageType.PRODUCT, url=robots_url)
+            response = fetch_safely(
+                fetcher, request, egress, user_agent, timeout_s,
+                allowed_hosts=allowed_hosts, resolver=resolver,
+            )
+            text = response.body.decode("utf-8", errors="replace") if response.status == 200 else None
+        except UnsafeUrlError:
+            text = None
+        except Exception:  # noqa: BLE001 - any transport failure -> fail closed (no text -> not admitted)
+            text = None
+
+        self._text_cache[retailer_slug] = text
+        return text
+
+    def admits(
+        self,
+        *,
+        retailer_slug: str,
+        base_url: str,
+        path: str,
+        fetcher,
+        egress,
+        user_agent: str,
+        timeout_s: float,
+        allowed_hosts,
+        resolver=None,
+    ) -> RobotsCheck:
+        text = self._robots_text(
+            retailer_slug=retailer_slug, base_url=base_url, fetcher=fetcher, egress=egress,
+            user_agent=user_agent, timeout_s=timeout_s, allowed_hosts=allowed_hosts, resolver=resolver,
+        )
+        return check_admission(base_url=base_url, path=path, fetch_text=lambda _url: text, identified_user_agent=user_agent)
+
+    def crawl_delay(
+        self,
+        *,
+        retailer_slug: str,
+        base_url: str,
+        fetcher,
+        egress,
+        user_agent: str,
+        timeout_s: float,
+        allowed_hosts,
+        resolver=None,
+    ) -> float | None:
+        text = self._robots_text(
+            retailer_slug=retailer_slug, base_url=base_url, fetcher=fetcher, egress=egress,
+            user_agent=user_agent, timeout_s=timeout_s, allowed_hosts=allowed_hosts, resolver=resolver,
+        )
+        if text is None:
+            return None
+        return crawl_delay_seconds(text, user_agent)
+
+
 def crawl_delay_seconds(robots_text: str, user_agent: str) -> float | None:
     """Return an explicit Crawl-delay for `user_agent`'s group if present."""
     parser = urllib.robotparser.RobotFileParser()

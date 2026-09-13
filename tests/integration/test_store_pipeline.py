@@ -20,10 +20,12 @@ from pathlib import Path
 import pytest
 
 from fpt.adapters.academy import AcademyAdapter
-from fpt.adapters.base import FetchRequest, FetchResponse, PageType, ResponseOutcome
+from fpt.adapters.base import Availability, FetchRequest, FetchResponse, PageType, ResponseOutcome
 from fpt.adapters.jandh import JandhAdapter
 from fpt.adapters.tackle_warehouse import TackleWarehouseAdapter
 from fpt.store.pipeline import ingest_parsed_listing
+
+import dataclasses
 
 FIXTURES = Path(__file__).parent.parent / "fixtures"
 
@@ -284,6 +286,219 @@ def test_rejected_and_blocked_results_never_create_observations_or_deals(db):
     assert cur.fetchone()[0] == 0
     cur.execute("SELECT count(*) FROM deals")
     assert cur.fetchone()[0] == 0
+
+
+# ---------------------------------------------------------------------------
+# H1: URL sanitizing at ingest -- reject the listing outright when neither
+# the page-content URL nor the requested URL lands on an allowed host, and
+# never trust response.final_url (a malicious/misconfigured redirect
+# target) as a safe fallback.
+# ---------------------------------------------------------------------------
+
+
+def test_ingest_rejects_listing_when_both_candidate_and_requested_url_are_unsafe(db):
+    cur = db.cursor()
+    retailer_id = _retailer_id(cur, "tackle_warehouse")
+
+    body = (FIXTURES / "tackle_warehouse" / "product_rod_single_variant.html").read_bytes()
+    # The requested URL itself is on the wrong host -- this should never
+    # happen in production (the scheduler only ever requests our own
+    # tracked_urls), but the ingest gate must fail closed rather than
+    # trust it.
+    bad_requested_url = "https://evil.com/product/123"
+    response = _response(PageType.PRODUCT, body, bad_requested_url, snapshot_ref="snap-unsafe-1")
+    listing = TackleWarehouseAdapter().parse(response).listings[0]
+    unsafe_listing = dataclasses.replace(listing, url="javascript:alert(document.cookie)")
+
+    outcome = ingest_parsed_listing(
+        db, retailer_id=retailer_id, retailer_slug="tackle_warehouse", category="rod",
+        listing=unsafe_listing, response=response, adapter_version=TackleWarehouseAdapter.adapter_version,
+    )
+
+    assert outcome.listing_id is None
+    assert outcome.rejected_reason == "unsafe_listing_url"
+    assert outcome.observations == []
+    assert outcome.deal_actions == []
+
+    cur.execute("SELECT count(*) FROM listings WHERE retailer_id = %s", (retailer_id,))
+    assert cur.fetchone()[0] == 0
+    cur.execute("SELECT count(*) FROM price_observations")
+    assert cur.fetchone()[0] == 0
+
+
+def test_ingest_falls_back_to_requested_url_never_trusts_final_url(db):
+    """A malicious/misconfigured redirect can only ever change
+    `response.final_url` -- `response.request.url` (what we ourselves
+    asked for) is what the fallback must use. This proves the persisted
+    URL lands on the REQUESTED host, not wherever `final_url` claims we
+    ended up."""
+    cur = db.cursor()
+    retailer_id = _retailer_id(cur, "tackle_warehouse")
+
+    body = (FIXTURES / "tackle_warehouse" / "product_rod_single_variant.html").read_bytes()
+    requested_url = "https://www.tacklewarehouse.com/St_Croix_Triumph_Spinning_Rods/descpage-MBTSR.html"
+    request = FetchRequest(task_id=1, page_type=PageType.PRODUCT, url=requested_url)
+    response = FetchResponse(
+        request=request,
+        status=200,
+        final_url="https://evil.com/redirected-here",  # attacker-controlled redirect target
+        headers={},
+        body=body,
+        elapsed_ms=10,
+        fetched_at=datetime.now(timezone.utc),
+        egress_mode="DIRECT",
+        snapshot_ref="snap-redirect-1",
+    )
+    listing = TackleWarehouseAdapter().parse(response).listings[0]
+    unsafe_listing = dataclasses.replace(listing, url="//evil.com/product/123")
+
+    outcome = ingest_parsed_listing(
+        db, retailer_id=retailer_id, retailer_slug="tackle_warehouse", category="rod",
+        listing=unsafe_listing, response=response, adapter_version=TackleWarehouseAdapter.adapter_version,
+    )
+
+    assert outcome.listing_id is not None
+    cur.execute("SELECT url FROM listings WHERE id = %s", (outcome.listing_id,))
+    persisted_url = cur.fetchone()[0]
+    assert persisted_url == requested_url
+    assert "evil.com" not in persisted_url
+
+
+# ---------------------------------------------------------------------------
+# H2/L1: ACTIVE deal lifecycle -- refreshed on continued verification, or
+# expired when it no longer clears the bar.
+# ---------------------------------------------------------------------------
+
+
+def test_active_deal_expires_when_offer_goes_out_of_stock(db):
+    cur = db.cursor()
+    retailer_id = _retailer_id(cur, "tackle_warehouse")
+
+    body = (FIXTURES / "tackle_warehouse" / "product_rod_single_variant.html").read_bytes()
+    url = "https://www.tacklewarehouse.com/St_Croix_Triumph_Spinning_Rods/descpage-MBTSR.html"
+
+    base_day = datetime.now(timezone.utc) - timedelta(days=50)
+    listing = None
+    for d in range(0, 42, 2):
+        observed_at = base_day + timedelta(days=d)
+        response = _response(PageType.PRODUCT, body, url, snapshot_ref=f"snap-h2-hist-{d}", fetched_at=observed_at)
+        result = TackleWarehouseAdapter().parse(response)
+        listing = result.listings[0]
+        ingest_parsed_listing(
+            db, retailer_id=retailer_id, retailer_slug="tackle_warehouse", category="rod",
+            listing=listing, response=response, adapter_version=TackleWarehouseAdapter.adapter_version,
+        )
+
+    cur.execute(
+        "SELECT o.id FROM offers o JOIN listings l ON l.id = o.listing_id "
+        "WHERE l.retailer_id = %s AND l.retailer_sku = %s", (retailer_id, listing.retailer_sku),
+    )
+    offer_id = cur.fetchone()[0]
+
+    discounted_offer = dataclasses.replace(listing.offers[0], price_cents=6000, on_clearance=True)
+    discounted_listing = dataclasses.replace(listing, offers=(discounted_offer,))
+    detect_at = base_day + timedelta(days=45)
+    detect_response = _response(PageType.PRODUCT, body, url, snapshot_ref="snap-h2-detect", fetched_at=detect_at)
+    ingest_parsed_listing(
+        db, retailer_id=retailer_id, retailer_slug="tackle_warehouse", category="rod",
+        listing=discounted_listing, response=detect_response, adapter_version=TackleWarehouseAdapter.adapter_version,
+    )
+
+    confirm_at = detect_at + timedelta(minutes=15)
+    confirm_response = _response(PageType.PRODUCT, body, url, snapshot_ref="snap-h2-confirm", fetched_at=confirm_at)
+    confirm_outcome = ingest_parsed_listing(
+        db, retailer_id=retailer_id, retailer_slug="tackle_warehouse", category="rod",
+        listing=discounted_listing, response=confirm_response, adapter_version=TackleWarehouseAdapter.adapter_version,
+    )
+    assert any(a.confirm_status == "ACTIVE" for a in confirm_outcome.deal_actions)
+    cur.execute("SELECT status FROM deals WHERE offer_id = %s", (offer_id,))
+    assert cur.fetchone()[0] == "ACTIVE"
+
+    # Next observation: still $60, but now OUT_OF_STOCK -- H2 says this
+    # must expire the deal (`sold_out`), not just leave it dangling ACTIVE.
+    oos_offer = dataclasses.replace(discounted_offer, availability=Availability.OUT_OF_STOCK)
+    oos_listing = dataclasses.replace(discounted_listing, offers=(oos_offer,))
+    oos_at = confirm_at + timedelta(hours=2)
+    oos_response = _response(PageType.PRODUCT, body, url, snapshot_ref="snap-h2-oos", fetched_at=oos_at)
+    oos_outcome = ingest_parsed_listing(
+        db, retailer_id=retailer_id, retailer_slug="tackle_warehouse", category="rod",
+        listing=oos_listing, response=oos_response, adapter_version=TackleWarehouseAdapter.adapter_version,
+    )
+    assert any(a.kind == "expired" and a.confirm_status == "sold_out" for a in oos_outcome.deal_actions)
+
+    cur.execute("SELECT status, expire_reason, expired_at FROM deals WHERE offer_id = %s", (offer_id,))
+    status, expire_reason, expired_at = cur.fetchone()
+    assert status == "EXPIRED"
+    assert expire_reason == "sold_out"
+    assert expired_at is not None
+
+
+def test_active_deal_refreshes_price_and_discount_on_continued_verification(db):
+    """L1: an ACTIVE deal's price_cents/discount_pct/reference_cents/
+    last_confirmed_observation_id must move with each fresh OK observation
+    that still clears the bar -- not stay frozen at whatever they were the
+    moment the deal first became ACTIVE."""
+    cur = db.cursor()
+    retailer_id = _retailer_id(cur, "tackle_warehouse")
+
+    body = (FIXTURES / "tackle_warehouse" / "product_rod_single_variant.html").read_bytes()
+    url = "https://www.tacklewarehouse.com/St_Croix_Triumph_Spinning_Rods/descpage-MBTSR.html"
+
+    base_day = datetime.now(timezone.utc) - timedelta(days=50)
+    listing = None
+    for d in range(0, 42, 2):
+        observed_at = base_day + timedelta(days=d)
+        response = _response(PageType.PRODUCT, body, url, snapshot_ref=f"snap-l1-hist-{d}", fetched_at=observed_at)
+        result = TackleWarehouseAdapter().parse(response)
+        listing = result.listings[0]
+        ingest_parsed_listing(
+            db, retailer_id=retailer_id, retailer_slug="tackle_warehouse", category="rod",
+            listing=listing, response=response, adapter_version=TackleWarehouseAdapter.adapter_version,
+        )
+
+    cur.execute(
+        "SELECT o.id FROM offers o JOIN listings l ON l.id = o.listing_id "
+        "WHERE l.retailer_id = %s AND l.retailer_sku = %s", (retailer_id, listing.retailer_sku),
+    )
+    offer_id = cur.fetchone()[0]
+
+    discounted_offer = dataclasses.replace(listing.offers[0], price_cents=6000, on_clearance=True)
+    discounted_listing = dataclasses.replace(listing, offers=(discounted_offer,))
+    detect_at = base_day + timedelta(days=45)
+    detect_response = _response(PageType.PRODUCT, body, url, snapshot_ref="snap-l1-detect", fetched_at=detect_at)
+    ingest_parsed_listing(
+        db, retailer_id=retailer_id, retailer_slug="tackle_warehouse", category="rod",
+        listing=discounted_listing, response=detect_response, adapter_version=TackleWarehouseAdapter.adapter_version,
+    )
+    confirm_at = detect_at + timedelta(minutes=15)
+    confirm_response = _response(PageType.PRODUCT, body, url, snapshot_ref="snap-l1-confirm", fetched_at=confirm_at)
+    ingest_parsed_listing(
+        db, retailer_id=retailer_id, retailer_slug="tackle_warehouse", category="rod",
+        listing=discounted_listing, response=confirm_response, adapter_version=TackleWarehouseAdapter.adapter_version,
+    )
+
+    # A further, still-valid price drop to $55 -- must be reflected on the
+    # deal row, proving the refresh path writes live values (L1), not just
+    # decides expire-or-not.
+    lower_offer = dataclasses.replace(listing.offers[0], price_cents=5500, on_clearance=True)
+    lower_listing = dataclasses.replace(listing, offers=(lower_offer,))
+    refresh_at = confirm_at + timedelta(hours=2)
+    refresh_response = _response(PageType.PRODUCT, body, url, snapshot_ref="snap-l1-refresh", fetched_at=refresh_at)
+    refresh_outcome = ingest_parsed_listing(
+        db, retailer_id=retailer_id, retailer_slug="tackle_warehouse", category="rod",
+        listing=lower_listing, response=refresh_response, adapter_version=TackleWarehouseAdapter.adapter_version,
+    )
+    assert any(a.kind == "refreshed" for a in refresh_outcome.deal_actions)
+
+    cur.execute(
+        "SELECT status, price_cents, discount_pct, last_confirmed_observation_id FROM deals WHERE offer_id = %s",
+        (offer_id,),
+    )
+    status, price_cents, discount_pct, last_confirmed_observation_id = cur.fetchone()
+    assert status == "ACTIVE"
+    assert price_cents == 5500
+    assert last_confirmed_observation_id == refresh_outcome.observations[0].observation_id
+    assert float(discount_pct) > 50.0
 
 
 # ---------------------------------------------------------------------------

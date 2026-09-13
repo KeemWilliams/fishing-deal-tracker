@@ -10,6 +10,7 @@ contains API keys added at call time.
 from __future__ import annotations
 
 import gzip
+import hashlib
 import os
 from datetime import datetime, timezone
 from pathlib import Path
@@ -17,9 +18,18 @@ from pathlib import Path
 DEFAULT_SNAPSHOT_DIR = Path(os.environ.get("FPT_SNAPSHOT_DIR", "/var/lib/fpt/snapshots"))
 
 
-def snapshot_ref_for(task_id: int, fetched_at: datetime) -> str:
-    stamp = fetched_at.astimezone(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    return f"{stamp}-task{task_id}.gz"
+def snapshot_ref_for(task_id: int, fetched_at: datetime, body: bytes) -> str:
+    """Content-hash + task id + microsecond timestamp (security review M5:
+    "snapshot_ref from uuid4 (or content hash + retailer + timestamp),
+    never empty"). The previous version truncated to whole seconds and
+    carried no content component, so two fetches of the same task within
+    one second collided; a content hash also means two BYTE-IDENTICAL
+    responses fetched moments apart still get distinguishable refs because
+    the timestamp differs, while making a collision on genuinely different
+    bytes astronomically unlikely even at the same microsecond."""
+    stamp = fetched_at.astimezone(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    digest = hashlib.sha256(body).hexdigest()[:16]
+    return f"{stamp}-task{task_id}-{digest}.gz"
 
 
 def write_snapshot(
@@ -39,7 +49,7 @@ def write_snapshot(
     """
     directory = snapshot_dir or DEFAULT_SNAPSHOT_DIR
     directory.mkdir(parents=True, exist_ok=True)
-    ref = snapshot_ref_for(task_id, fetched_at)
+    ref = snapshot_ref_for(task_id, fetched_at, body)
     with gzip.open(directory / ref, "wb") as fh:
         fh.write(body)
     return ref

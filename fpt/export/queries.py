@@ -50,6 +50,18 @@ _ACTIVE_OFFER_COUNT_SQL = "SELECT count(*) AS n FROM offers WHERE is_active;"
 # store-layer's in-progress migration 014, a confirmed/ACTIVE deal must
 # always carry a confirming observation, but the export never trusts status
 # alone for a fact this cheap to re-check at read time.
+#
+# M1: CLAIMED-lane deals are excluded from the public feed entirely for now
+# (owner's explicit default: hide a retailer's own unverified "was" claim
+# until our own cross-retailer/history evidence exists) -- they are still
+# fully stored and can later flip to VERIFIED on their own (architecture
+# 6.1's auto-upgrade path); this filter only affects what gets published.
+#
+# L2: a USED/OPEN_BOX/REFURB deal is excluded whenever shipping is unknown
+# for its most recent observation -- an unknown-shipping used item's total
+# cost to the buyer cannot be verified against the 50% claim, so it must
+# not be published as one (a NEW/CLAIMED deal's shipping is not part of its
+# own discount math and is unaffected by this guard).
 _ACTIVE_DEALS_SQL = """
 SELECT
   d.pub_id AS deal_id,
@@ -99,6 +111,8 @@ LEFT JOIN LATERAL (
 ) lo ON true
 WHERE d.status = 'ACTIVE'
   AND d.confirming_observation_id IS NOT NULL
+  AND d.lane != 'CLAIMED'
+  AND (d.lane != 'USED' OR lo.shipping_cents IS NOT NULL)
 ORDER BY d.discount_pct DESC, d.detected_at DESC;
 """
 
@@ -120,10 +134,16 @@ ORDER BY p.slug, pv.label;
 """
 
 # One row per (variant, retailer, condition, seller) currently-active offer,
-# carrying the most recent OK observation for that offer. Used to build
-# products/<slug>.json's `offers` array -- deliberately NOT filtered to the
-# deal's own retailer, so the product page shows every retailer/condition
-# currently tracked for that variant.
+# carrying the most recent OK observation for that offer -- but ONLY when
+# that observation is recent (L3: "product-page offers limited to recent
+# observations"). Without this filter, a variant page could keep showing an
+# offer whose last successful fetch was weeks ago as if it were current,
+# with only the (buried) `observed_at` timestamp to notice -- this is the
+# same "no fetch in 12h" staleness window the deals feed's retailer health
+# uses (fpt.export.build.STALE_AFTER_HOURS), applied per-offer here. Used
+# to build products/<slug>.json's `offers` array -- deliberately NOT
+# filtered to the deal's own retailer, so the product page shows every
+# retailer/condition currently and recently tracked for that variant.
 _VARIANT_OFFERS_SQL = """
 WITH latest_obs AS (
   SELECT DISTINCT ON (po.offer_id)
@@ -131,6 +151,7 @@ WITH latest_obs AS (
     po.on_clearance, po.observed_at
   FROM price_observations po
   WHERE po.quality = 'OK'
+    AND po.observed_at >= now() - (%(stale_hours)s::text || ' hours')::interval
   ORDER BY po.offer_id, po.observed_at DESC
 )
 SELECT
@@ -204,10 +225,10 @@ def fetch_products_with_variants(conn: "psycopg.Connection", slugs: list[str]) -
     return _fetch_all(conn, _PRODUCTS_WITH_VARIANTS_SQL, {"slugs": slugs})
 
 
-def fetch_variant_offers(conn: "psycopg.Connection", variant_ids: list[int]) -> list[dict]:
+def fetch_variant_offers(conn: "psycopg.Connection", variant_ids: list[int], *, stale_hours: int = 12) -> list[dict]:
     if not variant_ids:
         return []
-    return _fetch_all(conn, _VARIANT_OFFERS_SQL, {"variant_ids": variant_ids})
+    return _fetch_all(conn, _VARIANT_OFFERS_SQL, {"variant_ids": variant_ids, "stale_hours": stale_hours})
 
 
 def fetch_variant_history(conn: "psycopg.Connection", variant_ids: list[int]) -> list[dict]:

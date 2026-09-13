@@ -56,7 +56,7 @@ def build_export_documents(conn: "psycopg.Connection", *, generated_at: datetime
     products_by_slug = build.group_variant_rows_by_product(variant_rows)
     variant_ids = [v["variant_id"] for v in variant_rows]
 
-    offer_rows = queries.fetch_variant_offers(conn, variant_ids)
+    offer_rows = queries.fetch_variant_offers(conn, variant_ids, stale_hours=build.STALE_AFTER_HOURS)
     history_rows = queries.fetch_variant_history(conn, variant_ids)
     offers_by_variant = build.group_rows_by_variant(offer_rows)
     history_by_variant = build.group_rows_by_variant(history_rows)
@@ -79,10 +79,19 @@ def build_export_documents(conn: "psycopg.Connection", *, generated_at: datetime
     return meta, deals_feed, products_json
 
 
-def _integrity_gate_failures(meta: dict) -> list[str]:
+def _integrity_gate_failures(meta: dict, deals_feed: dict) -> list[str]:
     failures = []
     if meta["retailers"] and all(r["stale"] for r in meta["retailers"]):
         failures.append("all retailers stale (no successful fetch in 12h)")
+    # L4: an empty feed is far more likely to mean a broken query, a
+    # cascading rejection wave, or a bad deploy than "genuinely zero deals
+    # right now" -- refuse to promote it over a previously-good `latest`
+    # without an explicit --force. Schema validation (build_export_
+    # documents, called unconditionally before this function ever runs)
+    # still always executes even when --force is passed, since --force
+    # only ever bypasses THIS gate, never the schema checks.
+    if not deals_feed["deals"]:
+        failures.append("empty deals feed (0 ACTIVE deals) -- pass --force to publish anyway")
     return failures
 
 
@@ -115,7 +124,7 @@ def run_export(
 
     storage.write_versioned(export_id, files)
 
-    gate_failures = [] if force else _integrity_gate_failures(meta)
+    gate_failures = [] if force else _integrity_gate_failures(meta, deals_feed)
     if gate_failures:
         return ExportOutcome(
             export_id=export_id,

@@ -10,12 +10,31 @@
 # same conservative policy/breaker shape as tackle_warehouse rather than
 # the (unused-until-now) rates originally recorded in db seed 012, per
 # explicit instruction to keep new/newly-enabled retailers conservative.
+#
+# `allowed_hosts` (security review M3, added 2026-09-13): the ONLY
+# hostnames fpt/fetch/url_safety.py will ever let a request or a
+# post-redirect final_url resolve against for this retailer. Every URL
+# this codebase turns into an outbound request -- a configured discovery/
+# product page, a retailer-supplied `next_page_url`, or an enrolled
+# `DiscoveredItem.product_url` -- is checked against this list before the
+# request is made, and again on the response's `final_url` after
+# redirects. Kept deliberately narrow (the bare apex plus the one `www.`
+# host actually used in `base_url`/fixtures) rather than a wildcard.
+#
+# `stealth_approved` (security review M2, added 2026-09-13): default
+# false for every retailer. `fpt tick --use-stealth` on the CLI is
+# necessary but NEVER sufficient by itself -- fpt/cli.py ANDs the CLI flag
+# with this per-retailer flag before ever constructing a stealth-capable
+# HttpFetcher (see fpt/fetch/http_fetcher.py's class docstring). No
+# retailer has owner approval for stealth today (architecture doc 7.3/A4).
 retailers:
   - slug: tackle_warehouse
     name: "Tackle Warehouse"
     base_url: "https://www.tacklewarehouse.com"
     adapter_slug: tackle_warehouse
     enabled: true
+    allowed_hosts: [www.tacklewarehouse.com]
+    stealth_approved: false
     policy: &conservative_policy
       min_delay_s: 10
       jitter_s: 5
@@ -42,6 +61,8 @@ retailers:
     base_url: "https://www.academy.com"
     adapter_slug: academy
     enabled: true
+    allowed_hosts: [www.academy.com]
+    stealth_approved: false
     policy: *conservative_policy
     egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
     user_agent_profile: identified
@@ -52,6 +73,8 @@ retailers:
     base_url: "https://www.jandh.com"
     adapter_slug: jandh
     enabled: true
+    allowed_hosts: [www.jandh.com]
+    stealth_approved: false
     policy: *conservative_policy
     egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
     user_agent_profile: identified
@@ -70,6 +93,8 @@ retailers:
     base_url: "https://www.fishusa.com"
     adapter_slug: fishusa
     enabled: true
+    allowed_hosts: [www.fishusa.com]
+    stealth_approved: false
     policy: *conservative_policy
     egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
     user_agent_profile: identified
@@ -80,6 +105,8 @@ retailers:
     base_url: "https://www.tackledirect.com"
     adapter_slug: tackledirect
     enabled: true
+    allowed_hosts: [www.tackledirect.com]
+    stealth_approved: false
     policy: *conservative_policy
     egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
     user_agent_profile: identified
@@ -90,6 +117,8 @@ retailers:
     base_url: "https://alltackle.com"
     adapter_slug: alltackle
     enabled: true
+    allowed_hosts: [alltackle.com]
+    stealth_approved: false
     policy: *conservative_policy
     egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
     user_agent_profile: identified

@@ -34,7 +34,9 @@ from fpt.adapters._shared import (
     extract_title,
     find_barcodes,
     is_blocked,
+    load_allowed_hosts,
     parse_pack_count,
+    sanitize_offer_url,
 )
 from fpt.core.models import (
     Availability,
@@ -55,6 +57,11 @@ from fpt.core.models import (
 
 SELLER_KEY = "academy"
 SELLER_NAME = "Academy Sports + Outdoors"
+
+# H1: allowed hosts for this retailer's listing/discovered-item URLs.
+# Loaded once at import time -- config/retailers.yaml is a static file
+# checked into the image, not something that changes mid-process.
+ALLOWED_HOSTS = load_allowed_hosts("academy")
 
 _AVAILABILITY_MAP = {
     "instock": Availability.IN_STOCK,
@@ -115,7 +122,7 @@ def _build_offer(offer_obj: dict[str, Any], unit_count: int | None) -> ParsedOff
     )
 
 
-def _parse_single_product(product: dict[str, Any]) -> ParsedListing:
+def _parse_single_product(product: dict[str, Any], fallback_url: str | None) -> ParsedListing:
     name = product.get("name", "")
     brand = (product.get("brand") or {}).get("name")
     sku = str(product.get("sku") or "")
@@ -123,10 +130,12 @@ def _parse_single_product(product: dict[str, Any]) -> ParsedListing:
     offer_objs = offers_raw if isinstance(offers_raw, list) else [offers_raw] if offers_raw else []
     unit_count = parse_pack_count(name)
     offers = [_build_offer(o, unit_count) for o in offer_objs if isinstance(o, dict)]
+    raw_url = product.get("url") or (offer_objs[0].get("url") if offer_objs else "") or ""
+    url = sanitize_offer_url(raw_url, allowed_hosts=ALLOWED_HOSTS, fallback_url=fallback_url) or ""
     return ParsedListing(
         retailer_sku=sku,
         retailer_product_code=sku or None,
-        url=product.get("url") or (offer_objs[0].get("url") if offer_objs else "") or "",
+        url=url,
         title_raw=name,
         brand_raw=brand,
         model_raw=None,
@@ -139,7 +148,7 @@ def _parse_single_product(product: dict[str, Any]) -> ParsedListing:
     )
 
 
-def _parse_product_group(group: dict[str, Any]) -> list[ParsedListing]:
+def _parse_product_group(group: dict[str, Any], fallback_url: str | None) -> list[ParsedListing]:
     name = group.get("name", "")
     brand = (group.get("brand") or {}).get("name")
     unit_count = parse_pack_count(name)
@@ -150,11 +159,13 @@ def _parse_product_group(group: dict[str, Any]) -> list[ParsedListing]:
         offer_obj = variant.get("offers")
         offer_objs = [offer_obj] if isinstance(offer_obj, dict) else []
         color = variant.get("color")
+        raw_url = (offer_obj or {}).get("url") or group.get("url") or ""
+        url = sanitize_offer_url(raw_url, allowed_hosts=ALLOWED_HOSTS, fallback_url=fallback_url) or ""
         listings.append(
             ParsedListing(
                 retailer_sku=str(variant.get("sku") or ""),
                 retailer_product_code=str(group.get("productGroupID") or "") or None,
-                url=(offer_obj or {}).get("url") or group.get("url") or "",
+                url=url,
                 title_raw=variant.get("name") or name,
                 brand_raw=brand,
                 model_raw=None,
@@ -169,21 +180,21 @@ def _parse_product_group(group: dict[str, Any]) -> list[ParsedListing]:
     return listings
 
 
-def _parse_product_page(objects: list[Any]) -> list[ParsedListing]:
+def _parse_product_page(objects: list[Any], fallback_url: str | None) -> list[ParsedListing]:
     listings: list[ParsedListing] = []
     for obj in objects:
         if not isinstance(obj, dict):
             continue
         obj_type = obj.get("@type")
         if obj_type == "ProductGroup":
-            listings.extend(_parse_product_group(obj))
+            listings.extend(_parse_product_group(obj, fallback_url))
         elif obj_type == "Product":
-            listings.append(_parse_single_product(obj))
+            listings.append(_parse_single_product(obj, fallback_url))
     return listings
 
 
 def _parse_clearance_listing(
-    objects: list[Any], category_hint: str
+    objects: list[Any], category_hint: str, fallback_url: str | None
 ) -> list[DiscoveredItem]:
     discovered: list[DiscoveredItem] = []
     for obj in objects:
@@ -196,9 +207,10 @@ def _parse_clearance_listing(
             if not isinstance(item, dict):
                 continue
             offer = item.get("offers") if isinstance(item.get("offers"), dict) else {}
+            item_url = sanitize_offer_url(item.get("url"), allowed_hosts=ALLOWED_HOSTS, fallback_url=fallback_url) or ""
             discovered.append(
                 DiscoveredItem(
-                    product_url=item.get("url") or "",
+                    product_url=item_url,
                     retailer_product_code=item.get("mpn"),
                     title_raw=item.get("name") or "",
                     price_cents=_price_cents(offer),
@@ -293,7 +305,7 @@ class AcademyAdapter:
 
         if response.request.page_type == PageType.CLEARANCE_LISTING:
             category_hint = response.request.params.get("category_hint", "other")
-            discovered = _parse_clearance_listing(objects, category_hint)
+            discovered = _parse_clearance_listing(objects, category_hint, fallback_url=response.request.url)
             if not discovered:
                 warnings.append("ItemList JSON-LD found but yielded no items")
                 return ParseResult(
@@ -317,7 +329,7 @@ class AcademyAdapter:
             )
 
         # PRODUCT page
-        listings = _parse_product_page(objects)
+        listings = _parse_product_page(objects, fallback_url=response.request.url)
         if not listings:
             warnings.append("Product/ProductGroup JSON-LD found but yielded no listings")
             return ParseResult(

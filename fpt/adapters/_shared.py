@@ -15,7 +15,11 @@ from __future__ import annotations
 
 import json
 import re
+from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
+
+import yaml
 
 # Case-insensitive block/challenge-page signatures, from architecture doc
 # section 6.2 (observation quality guards). Kept here for the adapter's own
@@ -149,6 +153,95 @@ def parse_pack_count(text: str | None) -> int | None:
         return int(match.group(1))
     except ValueError:
         return None
+
+
+# ---------------------------------------------------------------------------
+# URL sanitizing (security review H1): a listing/offer URL is parsed from
+# untrusted retailer page content (JSON-LD, HTML). Before it is ever
+# persisted or published, it must be an absolute https URL whose host is
+# one this retailer actually serves -- otherwise a compromised or
+# malformed page (or a malicious redirect target landing in
+# `response.final_url`) could inject `javascript:`, `data:`, a
+# protocol-relative `//evil.com`, plain `http://`, or an entirely
+# different host into a link we show to visitors or store as canonical.
+#
+# `config/retailers.yaml` is the source of truth for each retailer's
+# `allowed_hosts` (added by the scheduler/config engineer, security review
+# M3, also consumed by fpt/fetch/url_safety.py's SSRF guard). If that key
+# is ever missing for a given retailer (a config regression, or a new
+# retailer added before its own config entry lands), `FALLBACK_ALLOWED_
+# HOSTS` below supplies a conservative local default matching the SAME
+# single canonical host each retailer's `allowed_hosts`/`base_url` actually
+# uses, so this guard is never silently disabled by a missing config key
+# and never admits a bare-apex/www variant the real config doesn't.
+
+_RETAILERS_CONFIG_PATH = Path(__file__).resolve().parents[2] / "config" / "retailers.yaml"
+
+FALLBACK_ALLOWED_HOSTS: dict[str, frozenset[str]] = {
+    "tackle_warehouse": frozenset({"www.tacklewarehouse.com"}),
+    "academy": frozenset({"www.academy.com"}),
+    "jandh": frozenset({"www.jandh.com"}),
+    "fishusa": frozenset({"www.fishusa.com"}),
+    "tackledirect": frozenset({"www.tackledirect.com"}),
+    "alltackle": frozenset({"alltackle.com"}),
+}
+
+
+def load_allowed_hosts(retailer_slug: str, *, config_path: Path | None = None) -> frozenset[str]:
+    """Per-retailer allowed hostnames for URL sanitizing. Reads
+    `config/retailers.yaml`'s `allowed_hosts` key for the retailer when
+    present; falls back to `FALLBACK_ALLOWED_HOSTS` otherwise. Never raises
+    on a missing/malformed config file -- falls back instead, since this is
+    a security guard that must degrade to "still enforced" not "silently
+    skipped"."""
+    path = config_path or _RETAILERS_CONFIG_PATH
+    if path.exists():
+        try:
+            with open(path, "r", encoding="utf-8") as fh:
+                data = yaml.safe_load(fh) or {}
+        except (OSError, yaml.YAMLError):
+            data = {}
+        for entry in data.get("retailers") or []:
+            if isinstance(entry, dict) and entry.get("slug") == retailer_slug:
+                hosts = entry.get("allowed_hosts")
+                if hosts:
+                    return frozenset(str(h).strip().lower() for h in hosts if h)
+                break
+    return FALLBACK_ALLOWED_HOSTS.get(retailer_slug, frozenset())
+
+
+def _is_safe_https_url(url: str, allowed_hosts: frozenset[str]) -> bool:
+    if not allowed_hosts:
+        return False
+    try:
+        parts = urlsplit(url)
+    except ValueError:
+        return False
+    if parts.scheme != "https":
+        return False
+    host = (parts.hostname or "").strip().lower()
+    return bool(host) and host in allowed_hosts
+
+
+def sanitize_offer_url(
+    candidate: str | None,
+    *,
+    allowed_hosts: frozenset[str],
+    fallback_url: str | None = None,
+) -> str | None:
+    """Returns a URL safe to persist/publish as a listing/offer URL:
+    absolute https, host in `allowed_hosts`. Tries `candidate` (parsed from
+    untrusted page content) first, then `fallback_url` -- which callers
+    MUST pass as the URL *we requested* (`FetchResponse.request.url`),
+    never `FetchResponse.final_url`: a malicious or misconfigured redirect
+    can land `final_url` on an arbitrary host, and using it as a "trusted"
+    fallback would defeat this guard entirely. Returns None if neither
+    passes; the caller must not persist/publish a URL built from this
+    response."""
+    for url in (candidate, fallback_url):
+        if url and _is_safe_https_url(url, allowed_hosts):
+            return url
+    return None
 
 
 def decode_html(body: bytes) -> str:

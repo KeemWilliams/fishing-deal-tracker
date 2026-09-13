@@ -13,9 +13,19 @@ Used both as an export-time integrity gate (`fpt.export.runner`) and by
 
 from __future__ import annotations
 
+import re
 from typing import Any
+from urllib.parse import urlsplit
 
 import jsonschema
+
+from fpt.adapters._shared import load_allowed_hosts
+
+# H1: every published URL must be https AND on a host this retailer
+# actually serves -- re-checked here at export time (belt-and-suspenders
+# with the ingest-time gate in fpt/store/pipeline.py) since this is the
+# very last stage before a URL goes out to real visitors.
+_HTTPS_PREFIX_RE = re.compile(r"^https://")
 
 LANE_ENUM = ["VERIFIED", "CLAIMED", "USED"]
 DEAL_RULE_ENUM = ["DEEP_DISCOUNT_NEW", "DEEP_DISCOUNT_CLAIMED", "USED_VS_CURRENT_NEW"]
@@ -205,6 +215,23 @@ PRODUCT_SCHEMA = {
 }
 
 
+def _url_error(retailer_slug: str, url: str, *, context: str) -> str | None:
+    """H1: `url`/`retailer_url` must start with `https://` and its host
+    must be in `retailer_slug`'s allowed hosts. Returns an error string
+    (never raises) so callers can batch this alongside other schema errors
+    into one `ExportValidationError`."""
+    if not isinstance(url, str) or not _HTTPS_PREFIX_RE.match(url):
+        return f"{context}: url must start with https:// (got {url!r})"
+    allowed_hosts = load_allowed_hosts(retailer_slug)
+    try:
+        host = (urlsplit(url).hostname or "").lower()
+    except ValueError:
+        return f"{context}: url could not be parsed ({url!r})"
+    if not allowed_hosts or host not in allowed_hosts:
+        return f"{context}: url host {host!r} is not an allowed host for retailer {retailer_slug!r}"
+    return None
+
+
 class ExportValidationError(ValueError):
     def __init__(self, what: str, errors: list[str]):
         self.what = what
@@ -225,21 +252,33 @@ def validate_meta(meta: dict) -> None:
 
 def validate_deals_feed(feed: dict) -> None:
     _validate(feed, DEALS_FEED_SCHEMA, "deals.json")
+    errors: list[str] = []
     # Publish-rule cross-check that a plain schema can't express: a
     # RETAILER_CLAIMED reference must never leak into `reference` -- CLAIMED
     # lane deals must have reference == null (was-price kept separate).
     for deal in feed["deals"]:
         if deal["lane"] == "CLAIMED" and deal["reference"] is not None:
-            raise ExportValidationError(
-                "deals.json",
-                [f"deal {deal['deal_id']}: CLAIMED lane must not carry a verified reference"],
-            )
+            errors.append(f"deal {deal['deal_id']}: CLAIMED lane must not carry a verified reference")
         if deal["lane"] in ("VERIFIED", "USED") and deal["reference"] is None:
-            raise ExportValidationError(
-                "deals.json",
-                [f"deal {deal['deal_id']}: {deal['lane']} lane requires a verified reference"],
-            )
+            errors.append(f"deal {deal['deal_id']}: {deal['lane']} lane requires a verified reference")
+        url_error = _url_error(deal["retailer_slug"], deal["retailer_url"], context=f"deal {deal['deal_id']}")
+        if url_error:
+            errors.append(url_error)
+    if errors:
+        raise ExportValidationError("deals.json", errors)
 
 
 def validate_product(product: dict) -> None:
     _validate(product, PRODUCT_SCHEMA, f"products/{product.get('slug', '?')}.json")
+    errors: list[str] = []
+    slug = product.get("slug", "?")
+    for variant in product.get("variants") or []:
+        for offer in variant.get("offers") or []:
+            url_error = _url_error(
+                offer["retailer_slug"], offer["url"],
+                context=f"products/{slug}.json variant {variant.get('variant_pub_id', '?')}",
+            )
+            if url_error:
+                errors.append(url_error)
+    if errors:
+        raise ExportValidationError(f"products/{slug}.json", errors)

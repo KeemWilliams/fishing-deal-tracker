@@ -46,7 +46,9 @@ from fpt.adapters._shared import (
     extract_title,
     find_barcodes,
     is_blocked,
+    load_allowed_hosts,
     parse_pack_count,
+    sanitize_offer_url,
 )
 from fpt.core.models import (
     Availability,
@@ -66,6 +68,9 @@ from fpt.core.models import (
 
 SELLER_KEY = "jandh"
 SELLER_NAME = "J&H Tackle"
+
+# H1: allowed hosts for this retailer's listing/discovered-item URLs.
+ALLOWED_HOSTS = load_allowed_hosts("jandh")
 
 _CARD_START_RE = re.compile(r'<div class="product-card-wrapper"')
 _CARD_HREF_RE = re.compile(r'<a class="product-card" href="([^"]+)"')
@@ -161,7 +166,7 @@ def _attributes_from_options(
     return attrs
 
 
-def _parse_product_page(body: bytes) -> list[ParsedListing]:
+def _parse_product_page(body: bytes, fallback_url: str | None = None) -> list[ParsedListing]:
     product_json = extract_product_json(body)
     jsonld_objects = extract_jsonld_objects(body)
 
@@ -179,13 +184,14 @@ def _parse_product_page(body: bytes) -> list[ParsedListing]:
             name = obj.get("name", "")
             brand = (obj.get("brand") or {}).get("name")
             props = obj.get("additionalProperty") or []
+            product_url = sanitize_offer_url(obj.get("url"), allowed_hosts=ALLOWED_HOSTS, fallback_url=fallback_url) or ""
             if not props:
                 # Single-SKU product with no variant breakdown at all.
                 listings.append(
                     ParsedListing(
                         retailer_sku=str(obj.get("sku") or ""),
                         retailer_product_code=None,
-                        url=obj.get("url") or "",
+                        url=product_url,
                         title_raw=name,
                         brand_raw=brand,
                         model_raw=None,
@@ -228,7 +234,7 @@ def _parse_product_page(body: bytes) -> list[ParsedListing]:
                     ParsedListing(
                         retailer_sku=identifier,
                         retailer_product_code=str(obj.get("sku") or "") or None,
-                        url=obj.get("url") or "",
+                        url=product_url,
                         title_raw=name,
                         brand_raw=brand,
                         model_raw=None,
@@ -279,11 +285,20 @@ def _parse_product_page(body: bytes) -> list[ParsedListing]:
         elif sku in barcode_map:
             gtin_raw.append(barcode_map[sku])
         unit_count = parse_pack_count(variant_title) or parse_pack_count(product_title)
+        # config/retailers.yaml's `allowed_hosts` for jandh is
+        # `www.jandh.com` only (matching its `base_url` and the host our
+        # own crawler actually requests) -- bare `jandh.com` is not on the
+        # allowlist, so build the canonical URL with `www.` to match.
+        built_url = f"https://www.jandh.com/products/{product_json.get('handle', '')}?variant={variant.get('id', '')}"
+        # Built from our own domain literal, but the handle/variant id are
+        # still untrusted page content -- route through the same guard
+        # rather than assuming string interpolation alone is safe (H1).
+        url = sanitize_offer_url(built_url, allowed_hosts=ALLOWED_HOSTS, fallback_url=fallback_url) or ""
         listings.append(
             ParsedListing(
                 retailer_sku=sku,
                 retailer_product_code=product_code,
-                url=f"https://jandh.com/products/{product_json.get('handle', '')}?variant={variant.get('id', '')}",
+                url=url,
                 title_raw=product_title,
                 brand_raw=brand,
                 model_raw=None,
@@ -298,7 +313,9 @@ def _parse_product_page(body: bytes) -> list[ParsedListing]:
     return listings
 
 
-def _parse_catalog_listing(body_text: str, category_hint: str) -> list[DiscoveredItem]:
+def _parse_catalog_listing(
+    body_text: str, category_hint: str, fallback_url: str | None = None
+) -> list[DiscoveredItem]:
     starts = [m.start() for m in _CARD_START_RE.finditer(body_text)]
     discovered: list[DiscoveredItem] = []
     for i, start in enumerate(starts):
@@ -314,7 +331,11 @@ def _parse_catalog_listing(body_text: str, category_hint: str) -> list[Discovere
         price_cents = _price_str_to_cents(price_match.group(1)) if price_match else None
         is_range = bool(_CARD_FROMTAG_RE.search(block))
         href = href_match.group(1)
-        url = href if href.startswith("http") else f"https://jandh.com{href}"
+        candidate_url = href if href.startswith("http") else f"https://www.jandh.com{href}"
+        # `href` is untrusted card markup: could be `javascript:`, `data:`,
+        # `//evil.com`, `http://`, or an absolute link to another host
+        # entirely -- sanitize before treating it as a product URL (H1).
+        url = sanitize_offer_url(candidate_url, allowed_hosts=ALLOWED_HOSTS, fallback_url=fallback_url) or ""
 
         discovered.append(
             DiscoveredItem(
@@ -407,7 +428,7 @@ class JandhAdapter:
         if page_type == PageType.CATALOG_LISTING:
             body_text = body.decode("utf-8", errors="replace")
             category_hint = response.request.params.get("category_hint", "other")
-            discovered = _parse_catalog_listing(body_text, category_hint)
+            discovered = _parse_catalog_listing(body_text, category_hint, fallback_url=response.request.url)
             if not discovered:
                 return ParseResult(
                     outcome=ResponseOutcome.STRUCTURE_CHANGED,
@@ -430,7 +451,7 @@ class JandhAdapter:
             )
 
         # PRODUCT page
-        listings = _parse_product_page(body)
+        listings = _parse_product_page(body, fallback_url=response.request.url)
         if not listings:
             return ParseResult(
                 outcome=ResponseOutcome.STRUCTURE_CHANGED,

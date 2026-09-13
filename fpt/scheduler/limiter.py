@@ -60,6 +60,16 @@ class RetailerState:
     disabled_reason: str | None = None
 
 
+def effective_min_delay_s(policy_min_delay_s: float, crawl_delay_s: float | None) -> float:
+    """Security review M2: "minimum 10s per retailer unless robots
+    Crawl-delay is larger." `crawl_delay_s` is `None` when robots.txt
+    carries no explicit Crawl-delay directive for this UA -- config's own
+    floor wins in that case."""
+    if crawl_delay_s is None:
+        return policy_min_delay_s
+    return max(policy_min_delay_s, crawl_delay_s)
+
+
 class RetailerLimiter:
     def __init__(self, policy: RetailerPolicy, *, rng: random.Random | None = None):
         self.policy = policy

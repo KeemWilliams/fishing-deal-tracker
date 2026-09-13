@@ -14,7 +14,10 @@ from __future__ import annotations
 
 import json
 import re
+import secrets
 from typing import Sequence
+
+import psycopg
 
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
 
@@ -80,17 +83,39 @@ def get_or_create_product(
     model_key: str,
     name: str,
 ) -> int:
+    """Security/robustness review M4: `products.slug` is UNIQUE globally,
+    independently of the `(brand_id, category, model_key)` unique
+    constraint this INSERT's `ON CONFLICT` already targets -- two DIFFERENT
+    products (different brand or category) can perfectly legitimately
+    slugify to the same string (e.g. two brands both named "Pro Series" in
+    different categories), which would raise a bare `UniqueViolation` on
+    `products.slug` that the `ON CONFLICT` clause above does not catch
+    (it only catches the OTHER unique key). On that specific conflict,
+    retry with a short random suffix appended to the slug -- the slug is a
+    display/URL convenience, not an identity column, so a few extra
+    characters cost nothing.
+    """
     slug = slugify(f"{name}-{model_key}")
-    cur.execute(
-        """
-        INSERT INTO products (slug, brand_id, name, model_key, category, origin)
-        VALUES (%s, %s, %s, %s, %s, 'auto_created')
-        ON CONFLICT (brand_id, category, model_key) DO UPDATE SET name = products.name
-        RETURNING id
-        """,
-        (slug, brand_id, name, model_key, category),
-    )
-    return cur.fetchone()[0]
+    for attempt in range(5):
+        candidate_slug = slug if attempt == 0 else f"{slug}-{secrets.token_hex(3)}"
+        cur.execute("SAVEPOINT before_product_insert")
+        try:
+            cur.execute(
+                """
+                INSERT INTO products (slug, brand_id, name, model_key, category, origin)
+                VALUES (%s, %s, %s, %s, %s, 'auto_created')
+                ON CONFLICT (brand_id, category, model_key) DO UPDATE SET name = products.name
+                RETURNING id
+                """,
+                (candidate_slug, brand_id, name, model_key, category),
+            )
+            product_id = cur.fetchone()[0]
+            cur.execute("RELEASE SAVEPOINT before_product_insert")
+            return product_id
+        except psycopg.errors.UniqueViolation:
+            cur.execute("ROLLBACK TO SAVEPOINT before_product_insert")
+            continue
+    raise RuntimeError(f"could not allocate a unique products.slug for {slug!r} after 5 attempts")
 
 
 def get_or_create_variant(

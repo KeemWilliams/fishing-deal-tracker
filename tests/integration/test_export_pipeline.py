@@ -96,7 +96,7 @@ def _seed_deal_scenario(db):
 
     def _seed_active_deal(lane, rule, condition, price_cents, reference_cents,
                            reference_kind, reference_detail, claimed_kind, claimed_cents,
-                           claimed_inflated, discount_pct):
+                           claimed_inflated, discount_pct, shipping_cents=None):
         listing_id = seed_listing(
             cur,
             retailer_id=retailer_id,
@@ -120,6 +120,7 @@ def _seed_deal_scenario(db):
             cur, offer_id=offer_id, crawl_task_id=crawl_task_id, task_kind="CONFIRM",
             observed_at=now, price_cents=price_cents, on_clearance=False,
             availability="IN_STOCK", quality="OK", reasons=[], stock_qty=2,
+            shipping_cents=shipping_cents,
         )
         deal_id = insert_deal(
             cur, offer_id=offer_id, rule=rule, lane=lane, status="ACTIVE",
@@ -144,6 +145,7 @@ def _seed_deal_scenario(db):
     used_pub_id, used_offer_id = _seed_active_deal(
         "USED", "USED_VS_CURRENT_NEW", "USED_LIKE_NEW", 5499, 12999,
         "CURRENT_NEW", {}, None, None, None, 57.69,
+        shipping_cents=0,  # L2: known (free) shipping -- required for export eligibility
     )
 
     # A CANDIDATE (never confirmed) deal on its own, separate offer -- must
@@ -200,10 +202,13 @@ class TestQueriesAgainstRealSchema:
         pub_ids = {r["deal_id"] for r in rows}
 
         assert seeded["verified_pub_id"] in pub_ids
-        assert seeded["claimed_pub_id"] in pub_ids
         assert seeded["used_pub_id"] in pub_ids
         # "only confirmed deals": a CANDIDATE deal must never appear.
         assert seeded["candidate_pub_id"] not in pub_ids
+        # M1: CLAIMED lane is hidden from the public feed entirely for now,
+        # even though it is ACTIVE and confirmed -- still stored, never
+        # exported.
+        assert seeded["claimed_pub_id"] not in pub_ids
 
     def test_every_active_deal_row_has_a_condition(self, db):
         _seed_deal_scenario(db)
@@ -234,21 +239,21 @@ class TestBuildExportDocumentsAgainstRealSchema:
 
         deal_ids = {d["deal_id"] for d in deals_feed["deals"]}
         assert seeded["verified_pub_id"] in deal_ids
-        assert seeded["claimed_pub_id"] in deal_ids
         assert seeded["used_pub_id"] in deal_ids
         assert seeded["candidate_pub_id"] not in deal_ids
+        # M1: CLAIMED lane never leaves the export, even though it is
+        # ACTIVE/confirmed -- kept out of the public feed until VERIFIED.
+        assert seeded["claimed_pub_id"] not in deal_ids
 
         assert seeded["product_slug"] in products_json
         variant = products_json[seeded["product_slug"]]["variants"][0]
-        # 3 offers behind ACTIVE deals + 1 behind the CANDIDATE-only deal --
-        # the product page legitimately shows every currently-active offer
-        # for the variant, regardless of that offer's deal status.
+        # 3 offers behind ACTIVE deals (including the CLAIMED one, which is
+        # still tracked/stored even though M1 hides its deal from the feed)
+        # + 1 behind the CANDIDATE-only deal -- the product page legitimately
+        # shows every currently-active offer for the variant, regardless of
+        # that offer's deal status.
         assert len(variant["offers"]) == 4
         assert len(variant["history"]) >= 1
-
-        our_claimed = next(d for d in deals_feed["deals"] if d["deal_id"] == seeded["claimed_pub_id"])
-        assert our_claimed["reference"] is None  # retailer-claimed price kept separate
-        assert our_claimed["claimed_reference"]["cents"] == 6999
 
         our_used = next(d for d in deals_feed["deals"] if d["deal_id"] == seeded["used_pub_id"])
         assert our_used["condition"] == "USED_LIKE_NEW"

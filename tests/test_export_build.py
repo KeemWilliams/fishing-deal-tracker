@@ -267,7 +267,7 @@ class TestBuildProduct:
                 {
                     "retailer_slug": "tackle_warehouse",
                     "retailer_name": "Tackle Warehouse",
-                    "url": "https://x/y",
+                    "url": "https://www.tacklewarehouse.com/y",
                     "condition": "NEW",
                     "seller_name": "Tackle Warehouse",
                     "seller_type": "FIRST_PARTY",

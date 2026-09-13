@@ -269,8 +269,12 @@ class TestCatalogListing:
         )
         assert dm_rod.price_is_range is True
         assert dm_rod.price_cents == 21999
+        # H1: config/retailers.yaml's `allowed_hosts` for jandh is
+        # `www.jandh.com` only -- a bare `jandh.com` relative href is
+        # rewritten with `www.` to stay on the allowed host (see
+        # fpt/adapters/jandh.py's `_parse_catalog_listing`).
         assert dm_rod.product_url == (
-            "https://jandh.com/products/dark-matter-john-skinner-jig-and-bounce-spinning-rods"
+            "https://www.jandh.com/products/dark-matter-john-skinner-jig-and-bounce-spinning-rods"
         )
 
 

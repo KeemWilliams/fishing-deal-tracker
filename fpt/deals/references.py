@@ -59,6 +59,12 @@ class CrossRetailerCandidate:
     price_cents: int
     is_r1_quality: bool  # has its own 90-day non-clearance median evidence
     match_status: str  # "auto_gtin" | "auto_mpn" | "manual" | "auto_attributes" | ...
+    # The reference LISTING's own identity (not our offer's) -- carried
+    # through so C8 (confirm.py) can verify the reference is scoped to the
+    # same variant_key/unit_count it claims to be, rather than trivially
+    # comparing our own offer's identity against itself (H3/H4).
+    variant_key_observed: str | None = None
+    unit_count: int | None = None
 
 
 def resolve_cross_retailer_new(
@@ -105,7 +111,14 @@ def resolve_verified_reference(
             VerifiedReference(
                 kind="CROSS_RETAILER_NEW",
                 cents=cross_retailer.price_cents,
-                detail={"retailer": cross_retailer.retailer_slug, "match": cross_retailer.match_status},
+                detail={
+                    "retailer": cross_retailer.retailer_slug,
+                    "match": cross_retailer.match_status,
+                    # H3/H4: the reference LISTING's own variant_key/unit_count,
+                    # not ours -- consumed by build_confirm_context (C8).
+                    "variant_key_observed": cross_retailer.variant_key_observed,
+                    "unit_count": cross_retailer.unit_count,
+                },
             )
         )
     if data_api_median_cents is not None:

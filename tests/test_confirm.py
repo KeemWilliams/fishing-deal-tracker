@@ -149,6 +149,35 @@ def test_c8_reference_scope_mismatch_on_condition_group():
     assert result.reject_reason == "reference_scope_mismatch"
 
 
+def test_c8_reference_scope_mismatch_on_unit_count():
+    # H3/H4: the reference offer's own unit_count (e.g. a 25-pack cross-
+    # retailer reference) must match this offer's own unit_count (a
+    # 5-pack) -- a mismatched pack size is not the same product even when
+    # linked to the same variant_id via GTIN.
+    ctx = _base_ctx(
+        offer_unit_count=5,
+        recomputed_reference_unit_count=25,
+    )
+    result = confirm_candidate(ctx)
+    assert result.status == "REJECTED"
+    assert result.reject_reason == "reference_scope_mismatch"
+
+
+def test_c8_matching_unit_counts_pass():
+    ctx = _base_ctx(offer_unit_count=5, recomputed_reference_unit_count=5)
+    result = confirm_candidate(ctx)
+    assert result.status == "ACTIVE"
+
+
+def test_c8_unit_count_none_on_either_side_does_not_reject():
+    # NULL is never comparable -- absence of pack-count evidence on either
+    # side must not be treated as a mismatch (it would incorrectly reject
+    # every unit_count-less category).
+    ctx = _base_ctx(offer_unit_count=None, recomputed_reference_unit_count=25)
+    result = confirm_candidate(ctx)
+    assert result.status == "ACTIVE"
+
+
 def test_c9_held_review_band_85_to_95():
     ctx = _base_ctx(recomputed_discount_pct=90.0)
     result = confirm_candidate(ctx)

@@ -60,6 +60,32 @@ def test_cross_retailer_none_when_nothing_verifiable():
     assert resolve_cross_retailer_new(candidates) is None
 
 
+def test_cross_retailer_candidate_carries_its_own_variant_key_and_unit_count():
+    # H3/H4: the candidate's own identity (not our offer's) must survive
+    # into resolve_cross_retailer_new's output, since it is a DIFFERENT
+    # listing entirely -- consumed downstream by build_confirm_context (C8).
+    candidates = [
+        CrossRetailerCandidate(
+            "jandh", 11999, is_r1_quality=True, match_status="auto_gtin",
+            variant_key_observed="length_in=90|power=M", unit_count=5,
+        ),
+    ]
+    result = resolve_cross_retailer_new(candidates)
+    assert result.variant_key_observed == "length_in=90|power=M"
+    assert result.unit_count == 5
+
+
+def test_verified_reference_detail_carries_reference_variant_key_and_unit_count():
+    cross = CrossRetailerCandidate(
+        "jandh", 11999, is_r1_quality=True, match_status="auto_gtin",
+        variant_key_observed="length_in=90|power=M", unit_count=5,
+    )
+    result = resolve_verified_reference(own_history=None, cross_retailer=cross)
+    assert result is not None
+    assert result.detail["variant_key_observed"] == "length_in=90|power=M"
+    assert result.detail["unit_count"] == 5
+
+
 def test_verified_reference_takes_minimum_of_r1_and_r2():
     own_history = resolve_own_history_median(_days([13000] * 30, date(2026, 1, 1)))
     cross = CrossRetailerCandidate("jandh", 11999, is_r1_quality=True, match_status="auto_gtin")
