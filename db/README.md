@@ -14,7 +14,8 @@ db/
   README.md              -- this file
 ```
 
-Migrations are plain SQL, applied in filename order (`001_` ... `012_`). No migration framework
+Migrations are plain SQL, applied in filename order (`001_` ... `014_`, `013_` reserved for a
+retailer-seed migration landing in parallel from another coder). No migration framework
 is assumed yet; apply with `psql` directly:
 
 ```bash
@@ -47,6 +48,8 @@ fit that tool's convention with no content changes.
 | 010_subscribers_watches | `subscribers`, `watches`, `alert_deliveries`, `alert_items`, `api_tokens_used` |
 | 011_roles_grants | `fpt_job`, `fpt_api` roles; least-privilege grants; `promote_variant_hot()` |
 | 012_seed_retailers | Seeds Tackle Warehouse, Academy Sports, J&H Tackle + their discovery pages |
+| 013_seed_more_retailers | Reserved: landing in parallel from another coder (not authored here) |
+| 014_deal_confirmation_and_currency | TEST-phase fix: `deals` CHECK requiring `confirming_observation_id` on confirmed statuses; adds `price_observations.currency` |
 
 Two tables have a column whose foreign key is added by a *later* migration rather than declared
 inline, because the two tables reference each other's future dependents in a cycle that can't be
@@ -130,6 +133,26 @@ the following calls were made:
    `WHERE` clause -- the view always carries the real `observed_at`, and the deal engine checks
    staleness at read time, so a delayed refresh can never silently present a stale offer as fresh.
 
+9. **014 (TEST-phase follow-up): the confirmed-status guard covers ACTIVE, HELD_REVIEW, and
+   EXPIRED, but deliberately not REJECTED.** Per section 6.4, ACTIVE and HELD_REVIEW are only
+   reachable after a CONFIRM observation runs checks C1-C10, and per section 6.3's lifecycle
+   EXPIRED is only reachable from ACTIVE, so all three require a non-null
+   `confirming_observation_id`. REJECTED is excluded on purpose: `confirm_deadline_missed` (the
+   CONFIRM task never got fetched, section 5.2) and `retailer_blocked` (section 5.4) are both
+   real, documented ways a candidate gets REJECTED with no confirming observation ever taken.
+   Constraining REJECTED the same way would make those two paths impossible to record. Added as
+   `NOT VALID` then `VALIDATE CONSTRAINT` (a `SHARE UPDATE EXCLUSIVE` lock, not a full table
+   rewrite lock) rather than a plain inline CHECK, since the table already has rows by the time
+   this migration runs in any real environment.
+
+10. **014's `price_observations.currency` column is metadata-only DDL, not a DML UPDATE.** The
+    table is append-only and a trigger blocks `UPDATE`/`DELETE` (007). `ALTER TABLE ... ADD
+    COLUMN ... DEFAULT 'USD'` is DDL that Postgres 11+ applies without rewriting existing rows for
+    a constant default, and it does not invoke the row-level `BEFORE UPDATE` trigger at all (that
+    trigger only fires for `UPDATE`/`DELETE` statements against existing rows) -- so existing
+    observations backfill to `'USD'` (correct per assumption A5, USD-only for MVP) without
+    touching append-only semantics.
+
 ## Smoke test (ran live during this task)
 
 A throwaway `postgres:16` Docker container was used -- no production or shared database was
@@ -157,6 +180,27 @@ touched.
    afterward to confirm the schema comes back up cleanly post-rollback.
 
 The container (`fpt-smoketest`) was removed after the test; nothing was left running.
+
+### 014 follow-up smoke test (TEST-phase defect fixes, second throwaway container `fpt-smoketest2`)
+
+1. Applied `001` through `012` then `014` (`013` skipped, reserved for the parallel adapter
+   coder's retailer seed) against a fresh database: zero errors.
+2. Re-ran the same sequence a second time: `CREATE ...` statements emitted the expected
+   `already exists, skipping` notices, `012`'s seed inserts reported `INSERT 0 0`, and `014`'s
+   guarded `DO` blocks + `ADD COLUMN IF NOT EXISTS` + re-run `VALIDATE CONSTRAINT` all no-op'd
+   cleanly. **Confirmed idempotent.**
+3. Inserted a full brand -> ... -> price_observation chain; `SELECT currency FROM
+   price_observations` showed the `'USD'` default applied with no value supplied.
+4. Guard test: inserting a `deals` row with `status = 'ACTIVE'` and `confirming_observation_id =
+   NULL` failed with `violates check constraint "deals_confirmed_status_requires_observation"`,
+   exactly as intended.
+5. Control test: the identical insert with `confirming_observation_id` set to a real observation
+   id succeeded.
+6. Guard test: inserting a `price_observations` row with `currency = 'usd'` (lowercase) failed
+   with `violates check constraint "price_observations_currency_format"`.
+7. Rollback: ran `014`'s down migration followed by `012` through `001` in reverse order -- zero
+   errors, `\dt` afterward showed no relations.
+8. Container `fpt-smoketest2` was removed after the test; nothing was left running.
 
 ## For backend coders
 
