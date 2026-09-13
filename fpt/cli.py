@@ -452,7 +452,13 @@ def run_tick(
                         # product page to re-derive a fact the grid already
                         # gave us).
                         listing_ingest_eligible_urls: frozenset[str] = frozenset()
-                        if retailer_cfg.get("listing_complete"):
+                        # Default ON: is_eligible_for_listing_ingest() is the real
+                        # per-item guard (only items carrying a firm price AND a real
+                        # claimed was-price are grid-confirmed; everything else falls
+                        # through to the normal enroll path), so enabling this broadly
+                        # is safe. Set listing_complete: false to force product-page
+                        # confirmation for a specific retailer.
+                        if retailer_cfg.get("listing_complete", True):
                             listing_outcome = listing_ingest.ingest_discovered_items_as_observations(
                                 conn, retailer_id=retailer_id, retailer_slug=slug, category=category,
                                 page_type=page_type, discovered=parse_result.discovered, response=response,
