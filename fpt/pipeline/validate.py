@@ -112,15 +112,52 @@ def validate_observation(
             reasons.append("claimed_not_above_price")
 
     if ctx.listing_unit_count is not None and obs.unit_count is not None:
+        # Both counts are known -- direct comparison (catches, e.g., a
+        # 4-pack observation landing on a listing recorded as a 2-pack).
         if obs.unit_count != ctx.listing_unit_count:
             reasons.append("unit_mismatch")
-    elif ctx.last_ok_price_cents and obs.unit_count and ctx.listing_unit_count:
+    elif ctx.listing_unit_count is None and ctx.last_ok_price_cents:
+        # DEFECT FIX (see test-engineer HANDOFF, HIGH-2 / test_adversarial_pure.py):
+        # this branch used to be `elif ... and ctx.listing_unit_count`, which is
+        # unreachable -- the sibling `if` already requires listing_unit_count to
+        # be not-None, so by the time control reaches here it is guaranteed None,
+        # and a `... and ctx.listing_unit_count` condition on a None value is
+        # always falsy. That silently disabled the price-ratio heuristic for the
+        # exact case it exists to cover: a DISCOVERY-grid-only sighting, where the
+        # listing's own unit_count isn't known yet (only the product page has
+        # it) and a per-unit-vs-pack price bug would otherwise look like a
+        # legitimate 50%+ discount straight through to fpt/deals/detect.py.
         tolerance = guard.get("unit_mismatch_tolerance_pct", 5.0) / 100.0
         ratio = obs.price_cents / ctx.last_ok_price_cents
-        for candidate in (1 / obs.unit_count if obs.unit_count else None, obs.unit_count):
-            if candidate and abs(ratio - candidate) <= tolerance:
-                reasons.append("unit_mismatch")
-                break
+
+        if obs.unit_count:
+            # The offer itself claims a pack size -- trust it as a strong
+            # signal. A ratio landing on 1/n or n against the CLAIMED count
+            # (including n=2, ratio 0.5) is direct evidence the price was
+            # divided/multiplied by that exact count, so flag unconditionally.
+            candidates = (1 / obs.unit_count, float(obs.unit_count))
+        else:
+            # AMBIGUITY DECISION (mission: "decide whether a ratio exactly 0.5
+            # with unknown pack info should be flagged for manual review
+            # rather than hard-rejected"): with zero pack-count evidence at
+            # all, a ratio of ~0.5 (n=2) is indistinguishable from a genuine
+            # 50%+ single-unit markdown -- deal_rules.yaml's own headline
+            # threshold (min_discount_pct: 50.0) is exactly that shape. Per
+            # architecture 6.2's own bias ("bad data must not publish, real
+            # deals must not be silently dropped"), guessing "multi-pack"
+            # here would silently suppress the platform's most common real
+            # deal. So n=2 is deliberately excluded from the guessed-multiple
+            # set below. Larger guessed multiples (3+) imply discounts an
+            # honest single-item markdown essentially never produces, so
+            # they stay in the guess set and still get flagged SUSPECT
+            # (held from auto-publish, never dropped -- see module docstring).
+            guessed_counts = guard.get(
+                "unit_mismatch_guess_multiples", [3, 4, 5, 6, 10, 12, 20, 25, 50]
+            )
+            candidates = [1 / n for n in guessed_counts] + [float(n) for n in guessed_counts]
+
+        if any(abs(ratio - candidate) <= tolerance for candidate in candidates if candidate):
+            reasons.append("unit_mismatch")
 
     if (
         ctx.listing_variant_key_observed is not None
