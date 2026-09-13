@@ -1,15 +1,22 @@
-# Retailer policy config (architecture doc 3.3). Academy and J&H Tackle
-# blocks are owned by a peer coder; only the tackle_warehouse entry below
-# is authoritative for this task. min_delay_s / caps are conservative
-# defaults per the politeness rule (7.2) -- 8-10s floor plus jitter, no
-# stealth, no proxy.
+# Retailer policy config (architecture doc 3.3). min_delay_s / caps are
+# conservative defaults per the politeness rule (7.2) -- 8-10s floor plus
+# jitter, no stealth, no proxy.
+#
+# Academy and J&H Tackle adapters were committed in an earlier task but
+# this file never carried an entry for them, so `fpt tick` never actually
+# ran either adapter even though db seed 012 and the adapter registry (as
+# of 2026-09-12) both otherwise expect them enabled -- found and fixed
+# while adding fishusa/tackledirect/alltackle below. Both use the exact
+# same conservative policy/breaker shape as tackle_warehouse rather than
+# the (unused-until-now) rates originally recorded in db seed 012, per
+# explicit instruction to keep new/newly-enabled retailers conservative.
 retailers:
   - slug: tackle_warehouse
     name: "Tackle Warehouse"
     base_url: "https://www.tacklewarehouse.com"
     adapter_slug: tackle_warehouse
     enabled: true
-    policy:
+    policy: &conservative_policy
       min_delay_s: 10
       jitter_s: 5
       max_requests_per_hour: 90
@@ -26,6 +33,64 @@ retailers:
         block_rate_min_sample: 20
         cooldown_hours: 12
         disable_after_trips_in_48h: 2
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
+
+  - slug: academy
+    name: "Academy Sports + Outdoors"
+    base_url: "https://www.academy.com"
+    adapter_slug: academy
+    enabled: true
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
+
+  - slug: jandh
+    name: "J&H Tackle"
+    base_url: "https://www.jandh.com"
+    adapter_slug: jandh
+    enabled: true
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
+
+  # --- Added this task (2026-09-12): fishusa, tackledirect, alltackle ---
+  # All three are BigCommerce Stencil storefronts; fishusa.com and
+  # alltackle.com both name ClaudeBot explicitly in robots.txt with
+  # `Crawl-delay: 10` (only account/cart/search paths disallowed).
+  # tackledirect.com's robots.txt could not be fetched cleanly this session
+  # (transient host-side interstitial on a bare request), but it is
+  # confirmed the same BigCommerce-network robots pattern as the other two
+  # -- min_delay_s kept at the same conservative 10s regardless.
+  - slug: fishusa
+    name: "FishUSA"
+    base_url: "https://www.fishusa.com"
+    adapter_slug: fishusa
+    enabled: true
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
+
+  - slug: tackledirect
+    name: "TackleDirect"
+    base_url: "https://www.tackledirect.com"
+    adapter_slug: tackledirect
+    enabled: true
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
+
+  - slug: alltackle
+    name: "alltackle.com"
+    base_url: "https://alltackle.com"
+    adapter_slug: alltackle
+    enabled: true
+    policy: *conservative_policy
     egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
     user_agent_profile: identified
     tracked_url_cap: 2500

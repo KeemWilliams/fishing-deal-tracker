@@ -38,9 +38,23 @@ def _register_builtin_adapters() -> None:
     # Imported lazily to avoid import cost/cycles for callers that only
     # need the registry API surface (e.g. tests exercising a single
     # adapter directly without loading every retailer's dependencies).
+    from fpt.adapters.academy import AcademyAdapter
+    from fpt.adapters.alltackle import AlltackleAdapter
+    from fpt.adapters.fishusa import FishUSAAdapter
+    from fpt.adapters.jandh import JandhAdapter
     from fpt.adapters.tackle_warehouse import TackleWarehouseAdapter
+    from fpt.adapters.tackledirect import TackleDirectAdapter
 
     register(TackleWarehouseAdapter())
+    # Academy and J&H were committed earlier but were never wired into this
+    # registry, so `fpt tick` silently never ran them even though the
+    # database seed (012) and config/retailers.yaml marked them enabled --
+    # found and fixed while adding the three retailers below (2026-09-12).
+    register(AcademyAdapter())
+    register(JandhAdapter())
+    register(FishUSAAdapter())
+    register(TackleDirectAdapter())
+    register(AlltackleAdapter())
 
 
 _register_builtin_adapters()
