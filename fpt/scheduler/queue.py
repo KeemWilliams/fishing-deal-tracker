@@ -22,6 +22,7 @@ respects `min_delay_s` between them) without an actual `time.sleep`.
 
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -35,6 +36,8 @@ from fpt.fetch.robots import RobotsGate
 from fpt.fetch.url_safety import UnsafeUrlError, fetch_safely
 from fpt.scheduler.limiter import RetailerLimiter
 from fpt.store.pipeline import ingest_parsed_listing
+
+logger = logging.getLogger(__name__)
 
 # Task kinds this drainer will ever lease. DISCOVERY tasks are not leased
 # here -- fpt/cli.py's tick still fetches discovery pages directly (see
@@ -105,10 +108,13 @@ def drain_retailer_queue(
     max_tasks: int = 50,
 ) -> DrainResult:
     cur = conn.cursor()
-    expire_overdue_confirm_tasks(cur, retailer_id=retailer_id, now=now)
+    expired = expire_overdue_confirm_tasks(cur, retailer_id=retailer_id, now=now)
+    if expired:
+        logger.info("queue.expired_confirm_tasks retailer=%s count=%d", retailer_slug, expired)
 
     result = DrainResult()
     clock = now
+    leased_count = 0
 
     for _ in range(max_tasks):
         cur.execute(
@@ -127,6 +133,10 @@ def drain_retailer_queue(
             break
         task_id, kind, page_type_value, url, params = row
         params = params or {}
+        leased_count += 1
+        logger.info(
+            "queue.task_selected retailer=%s task_id=%s kind=%s url=%s", retailer_slug, task_id, kind, url
+        )
 
         admitted, reason = limiter.can_admit(kind, now=clock)
         if not admitted:
@@ -140,9 +150,16 @@ def drain_retailer_queue(
                     (clock, task_id),
                 )
                 result.tasks.append({"task_id": task_id, "kind": kind, "url": url, "status": "SKIPPED_BUDGET"})
+                logger.info(
+                    "queue.task_outcome retailer=%s task_id=%s kind=%s status=SKIPPED_BUDGET reason=%s",
+                    retailer_slug, task_id, kind, reason,
+                )
                 continue
             # breaker_open / disabled / delay_not_elapsed: nothing else
             # will succeed this tick for this retailer -- stop draining.
+            logger.info(
+                "queue.drain_stopped retailer=%s reason=%s leased=%d", retailer_slug, reason, leased_count
+            )
             break
 
         # Security review M2: robots.txt admission, checked for THIS
@@ -162,6 +179,10 @@ def drain_retailer_queue(
             )
             result.tasks.append(
                 {"task_id": task_id, "kind": kind, "url": url, "status": "SKIPPED_ROBOTS", "reason": robots_check.reason}
+            )
+            logger.info(
+                "queue.task_outcome retailer=%s task_id=%s kind=%s status=SKIPPED_ROBOTS reason=%s",
+                retailer_slug, task_id, kind, robots_check.reason,
             )
             continue
 
@@ -185,6 +206,10 @@ def drain_retailer_queue(
             result.tasks.append(
                 {"task_id": task_id, "kind": kind, "url": url, "status": "FAILED", "error": f"unsafe_url:{exc.reason}"}
             )
+            logger.warning(
+                "queue.task_outcome retailer=%s task_id=%s kind=%s status=FAILED reason=unsafe_url:%s",
+                retailer_slug, task_id, kind, exc.reason,
+            )
             delay = limiter.next_delay_s()
             sleep_fn(delay)
             clock = clock + timedelta(seconds=delay)
@@ -196,6 +221,10 @@ def drain_retailer_queue(
             )
             limiter.record_request(now=clock)
             result.tasks.append({"task_id": task_id, "kind": kind, "url": url, "status": "FAILED", "error": redact(str(exc))})
+            logger.warning(
+                "queue.task_outcome retailer=%s task_id=%s kind=%s status=FAILED error=%s",
+                retailer_slug, task_id, kind, redact(str(exc)),
+            )
             delay = limiter.next_delay_s()
             sleep_fn(delay)
             clock = clock + timedelta(seconds=delay)
@@ -212,6 +241,17 @@ def drain_retailer_queue(
 
         task_result = {"task_id": task_id, "kind": kind, "url": url, "outcome": block_check.outcome.value}
 
+        # Diagnostic instrumentation (mission item 1): every fetch's HTTP
+        # status, resolved outcome, and block signature (when any) is
+        # logged here -- this is the one place that can distinguish
+        # "fetched fine but 0 listings parsed" from "blocked/empty before
+        # parsing ever ran", which is invisible in `run.py tick`'s
+        # end-of-run JSON summary alone.
+        logger.info(
+            "queue.fetch_result retailer=%s task_id=%s kind=%s url=%s http_status=%s outcome=%s block_signature=%s",
+            retailer_slug, task_id, kind, url, response.status, block_check.outcome.value, block_check.block_signature,
+        )
+
         if block_check.outcome != ResponseOutcome.OK:
             # BLOCKED/EMPTY/etc: never parsed, never persisted (same guard
             # as fpt/cli.py's discovery-page loop and fpt/store/pipeline.py's
@@ -221,6 +261,11 @@ def drain_retailer_queue(
                 (block_check.outcome.value, clock, task_id),
             )
             result.tasks.append(task_result)
+            logger.warning(
+                "queue.task_outcome retailer=%s task_id=%s kind=%s status=DONE outcome=%s "
+                "reason=no_observation_written:non_ok_fetch",
+                retailer_slug, task_id, kind, block_check.outcome.value,
+            )
             delay = limiter.next_delay_s()
             sleep_fn(delay)
             clock = clock + timedelta(seconds=delay)
@@ -239,6 +284,10 @@ def drain_retailer_queue(
                 (clock, task_id),
             )
             result.tasks.append({"task_id": task_id, "kind": kind, "url": url, "status": "FAILED", "error": "recursion_limit_exceeded"})
+            logger.error(
+                "queue.task_outcome retailer=%s task_id=%s kind=%s status=FAILED error=recursion_limit_exceeded",
+                retailer_slug, task_id, kind,
+            )
             delay = limiter.next_delay_s()
             sleep_fn(delay)
             clock = clock + timedelta(seconds=delay)
@@ -250,6 +299,10 @@ def drain_retailer_queue(
                 (clock, task_id),
             )
             result.tasks.append({"task_id": task_id, "kind": kind, "url": url, "status": "FAILED", "error": redact(str(exc))})
+            logger.error(
+                "queue.task_outcome retailer=%s task_id=%s kind=%s status=FAILED error=%s",
+                retailer_slug, task_id, kind, redact(str(exc)),
+            )
             delay = limiter.next_delay_s()
             sleep_fn(delay)
             clock = clock + timedelta(seconds=delay)
@@ -257,6 +310,12 @@ def drain_retailer_queue(
 
         task_result["listing_count"] = len(parse_result.listings)
         category = params.get("category_hint", "other")
+        if not parse_result.listings:
+            logger.warning(
+                "queue.task_outcome retailer=%s task_id=%s kind=%s status=DONE outcome=OK "
+                "reason=no_observation_written:zero_listings_parsed",
+                retailer_slug, task_id, kind,
+            )
         ingested = []
         for listing in parse_result.listings:
             ingest_outcome = ingest_parsed_listing(
@@ -264,12 +323,23 @@ def drain_retailer_queue(
                 listing=listing, response=response, adapter_version=adapter.adapter_version,
                 task_kind=kind, crawl_task_id=task_id,
             )
+            if ingest_outcome.listing_id is None:
+                logger.warning(
+                    "queue.task_outcome retailer=%s task_id=%s kind=%s sku=%s status=DONE outcome=OK "
+                    "reason=no_observation_written:%s",
+                    retailer_slug, task_id, kind, listing.retailer_sku, ingest_outcome.rejected_reason,
+                )
             ingested.append(
                 {
                     "listing_id": ingest_outcome.listing_id,
                     "observations": len(ingest_outcome.observations),
                     "deal_actions": [a.kind for a in ingest_outcome.deal_actions],
                 }
+            )
+            logger.info(
+                "queue.ingested retailer=%s task_id=%s kind=%s sku=%s observations=%d deal_actions=%s",
+                retailer_slug, task_id, kind, listing.retailer_sku, len(ingest_outcome.observations),
+                [a.kind for a in ingest_outcome.deal_actions],
             )
         task_result["ingested"] = ingested
 
@@ -282,4 +352,5 @@ def drain_retailer_queue(
         sleep_fn(delay)
         clock = clock + timedelta(seconds=delay)
 
+    logger.info("queue.drain_complete retailer=%s leased=%d tasks=%d", retailer_slug, leased_count, len(result.tasks))
     return result

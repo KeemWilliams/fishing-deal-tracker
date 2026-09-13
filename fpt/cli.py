@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import sys
 import time
 from datetime import datetime, timedelta, timezone
@@ -43,13 +44,34 @@ from fpt.pipeline.validate import (
     ObservationInput,
     validate_observation,
 )
-from fpt.scheduler import enroller
+from fpt.scheduler import enroller, listing_ingest
 from fpt.scheduler.limiter import BreakerPolicy, RetailerLimiter, RetailerPolicy, effective_min_delay_s
 from fpt.scheduler.queue import drain_retailer_queue
 from fpt.store.observations import get_or_create_crawl_task
 from fpt.store.pipeline import ingest_parsed_listing
 
 CONFIG_DIR = Path(__file__).resolve().parent.parent / "config"
+
+logger = logging.getLogger(__name__)
+
+# Mission item 1 (instrumentation): `python run.py tick` previously only
+# ever printed its JSON summary at the very end -- a long-running or
+# cancelled Actions run showed nothing in the logs. `_configure_logging`
+# wires stderr logging so every `queue.*`/`pipeline.*`/`enroller.*`
+# log line (fpt/scheduler/queue.py, fpt/store/pipeline.py,
+# fpt/scheduler/enroller.py) streams live. Idempotent -- safe to call more
+# than once (e.g. from tests that also call `main()`), and never touches
+# the root logger's level if a caller (or `pytest`'s own log capture) has
+# already configured a handler, so it does not fight test log capture.
+def _configure_logging(level: str = "INFO") -> None:
+    root = logging.getLogger()
+    if root.handlers:
+        return
+    logging.basicConfig(
+        level=getattr(logging, level.upper(), logging.INFO),
+        stream=sys.stderr,
+        format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    )
 
 
 class _FakeTask:
@@ -188,7 +210,32 @@ def run_tick(
     now: datetime | None = None,
     resolver=None,
     sleep_fn: Callable[[float], None] | None = None,
+    max_confirm: int | None = None,
+    deadline_seconds: float | None = None,
+    wall_clock: Callable[[], float] | None = None,
 ) -> dict:
+    """`max_confirm` (mission item 4, throughput): caps how many QUEUED
+    ENROLL/CONFIRM/HOT/BASELINE crawl_tasks `drain_retailer_queue` will
+    lease PER RETAILER, per tick -- passed straight through to that
+    function's own `max_tasks` parameter (default there is 50). With N
+    enabled retailers processed sequentially and a real `time.sleep`
+    between every single fetch (this module's own `sleep_fn`, matching
+    `RetailerLimiter`'s min_delay_s + jitter), the actual wall-clock cost
+    of one tick is `O(N * max_confirm * min_delay_s)` -- 13 retailers *
+    50 tasks * ~12s/task is >2 hours, which is why a real run drained only
+    15 of 248 queued tasks inside a 30-minute Actions budget. Lowering
+    this default is the direct fix; `--max-confirm` on the CLI exposes it
+    without a code change for future tuning.
+
+    `deadline_seconds` (belt-and-suspenders on top of `max_confirm`): a
+    hard wall-clock budget for the WHOLE tick, checked between retailers
+    -- so a tick still makes steady, bounded progress even if a future
+    change re-enables more retailers or raises `max_confirm` without
+    updating this default. `wall_clock` is injectable (defaults to
+    `time.monotonic`) purely for deterministic tests; it is never the
+    `now`/`clock` used for rate-limiting or confirm-gap math, which stays
+    on the simulated tick clock as before.
+    """
     # Looked up on `time` at call time (not bound as a default parameter
     # value) so `monkeypatch.setattr(cli_module.time, "sleep", ...)` in
     # tests -- the only way to intercept sleeping through `main()`, which
@@ -196,10 +243,19 @@ def run_tick(
     # bound at `def` time would capture the original `time.sleep` function
     # object once and ignore any later monkeypatch of the module attribute.
     sleep_fn = sleep_fn or time.sleep
+    wall_clock = wall_clock or time.monotonic
     started_at = now or datetime.now(timezone.utc)
     injected_fetcher = fetcher is not None
     egress = EgressConfig(mode="DIRECT")
     robots_gate = RobotsGate()
+
+    # Mission item 4 defaults: a conservative per-retailer task cap (was an
+    # unconfigurable 50 in fpt/scheduler/queue.py's own default) plus a
+    # whole-tick wall-clock ceiling comfortably inside a 30-minute CI job.
+    max_confirm = max_confirm if max_confirm is not None else 8
+    deadline_seconds = deadline_seconds if deadline_seconds is not None else 1500.0  # 25 minutes
+    tick_deadline_at = wall_clock() + deadline_seconds
+    retailers_skipped_deadline: list[str] = []
 
     summary: dict = {
         "started_at": started_at.isoformat(),
@@ -217,6 +273,17 @@ def run_tick(
 
         for retailer_cfg in _enabled_retailers():
             slug = retailer_cfg["slug"]
+            if wall_clock() >= tick_deadline_at:
+                # Mission item 4: a whole-tick deadline, not just a
+                # per-retailer task cap -- once the budget is spent, every
+                # remaining retailer is skipped outright (never partially
+                # drained) so the tick exits promptly instead of running
+                # past the CI job's own timeout with unpredictable partial
+                # state. Skipped retailers are retried on the NEXT tick;
+                # nothing here marks their queued tasks as failed.
+                retailers_skipped_deadline.append(slug)
+                logger.warning("cli.tick_deadline_exceeded skipping_retailer=%s", slug)
+                continue
             adapter_slug = retailer_cfg.get("adapter_slug", slug)
             base_url = retailer_cfg.get("base_url", "")
             allowed_hosts = retailer_cfg.get("allowed_hosts") or []
@@ -374,12 +441,52 @@ def run_tick(
                             enroll_cur, retailer_id=retailer_id, kind="DISCOVERY", page_type=page_type,
                             url=url, dedupe_key=f"DISCOVERY:{slug}:{url}:{response.snapshot_ref}",
                         )
+
+                        # Mission item 3: for "listing-complete" retailers
+                        # (grid already carries full price + reference),
+                        # detect/confirm directly off the grid rows FIRST --
+                        # see fpt/scheduler/listing_ingest.py's module
+                        # docstring for the full design. Its eligible URLs
+                        # are then excluded from the enroller's own ENROLL
+                        # enqueue below (mission item 4: no point fetching a
+                        # product page to re-derive a fact the grid already
+                        # gave us).
+                        listing_ingest_eligible_urls: frozenset[str] = frozenset()
+                        if retailer_cfg.get("listing_complete"):
+                            listing_outcome = listing_ingest.ingest_discovered_items_as_observations(
+                                conn, retailer_id=retailer_id, retailer_slug=slug, category=category,
+                                page_type=page_type, discovered=parse_result.discovered, response=response,
+                                adapter_version=adapter.adapter_version, crawl_task_id=disc_crawl_task_id,
+                            )
+                            page_result["listing_ingest"] = {
+                                "eligible": listing_outcome.eligible_count,
+                                "ineligible": listing_outcome.ineligible_count,
+                            }
+                            listing_ingest_eligible_urls = frozenset(
+                                item.product_url for item in parse_result.discovered
+                                if listing_ingest.is_eligible_for_listing_ingest(item)
+                            )
+                            for lo in listing_outcome.outcomes:
+                                persisted_count += len(lo.observations)
+                                for action in lo.deal_actions:
+                                    if action.kind != "none":
+                                        deal_actions.append(
+                                            {
+                                                "retailer": slug,
+                                                "kind": action.kind,
+                                                "deal_id": action.deal_id,
+                                                "confirm_status": action.confirm_status,
+                                                "source": "listing_ingest",
+                                            }
+                                        )
+
                         enroll_outcome = enroller.enroll_discovery_page(
                             enroll_cur, retailer_id=retailer_id, discovery_page_id=discovery_page_id,
                             page_type=page_type, category_hint=category, crawl_task_id=disc_crawl_task_id,
                             discovered=parse_result.discovered, seen_at=response.fetched_at,
                             tracked_url_cap=retailer_cfg.get("tracked_url_cap"),
                             allowed_hosts=allowed_hosts, resolver=resolver,
+                            skip_enroll_urls=listing_ingest_eligible_urls,
                         )
                         page_result["enrolled"] = {
                             "hits": len(enroll_outcome.discovery_hit_ids),
@@ -479,7 +586,7 @@ def run_tick(
                     conn, retailer_id=retailer_id, retailer_slug=slug, base_url=base_url, adapter=adapter,
                     fetcher=retailer_fetcher, egress=egress, limiter=limiter, robots_gate=robots_gate,
                     allowed_hosts=allowed_hosts, user_agent=IDENTIFIED_USER_AGENT, timeout_s=30.0,
-                    now=clock, resolver=resolver, sleep_fn=sleep_fn,
+                    now=clock, resolver=resolver, sleep_fn=sleep_fn, max_tasks=max_confirm,
                 )
                 retailer_summary["queue"] = drain_result.tasks
                 for task_result in drain_result.tasks:
@@ -509,6 +616,8 @@ def run_tick(
     summary["observations"] = all_observations
     summary["deal_actions"] = deal_actions
     summary["db"] = db_status
+    summary["retailers_skipped_deadline"] = retailers_skipped_deadline
+    summary["max_confirm"] = max_confirm
     summary["finished_at"] = datetime.now(timezone.utc).isoformat()
     return summary
 
@@ -541,6 +650,27 @@ def main(argv: list[str] | None = None) -> int:
         help="ISO-8601 timestamp to treat as 'now' for this tick (offline/testing use only -- "
              "lets --fixtures-manifest runs simulate the passage of time between ticks without sleeping).",
     )
+    tick_parser.add_argument(
+        "--max-confirm",
+        type=int,
+        default=None,
+        help="Cap on QUEUED ENROLL/CONFIRM/HOT/BASELINE crawl_tasks drained PER RETAILER this tick "
+             "(default 8; was an unconfigurable 50 -- see run_tick's docstring for why that made a real "
+             "run drain only 15/248 queued tasks in 15 minutes). Raise this once throughput is proven safe.",
+    )
+    tick_parser.add_argument(
+        "--deadline-seconds",
+        type=float,
+        default=None,
+        help="Whole-tick wall-clock budget (default 1500s / 25min); once exceeded, remaining retailers "
+             "are skipped outright and retried on the next tick, so a tick never runs past a CI job's "
+             "own timeout regardless of how many retailers are enabled.",
+    )
+    tick_parser.add_argument(
+        "--log-level",
+        default="INFO",
+        help="Log level for streamed queue/pipeline/enroller diagnostics (default INFO).",
+    )
 
     export_parser = subparsers.add_parser(
         "export", help="Build and publish the public deals feed (architecture doc 3.4)"
@@ -557,6 +687,7 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     args = parser.parse_args(argv)
+    _configure_logging(getattr(args, "log_level", "INFO"))
 
     if args.command == "tick":
         tick_now = datetime.fromisoformat(args.now) if args.now else None
@@ -568,6 +699,8 @@ def main(argv: list[str] | None = None) -> int:
             use_stealth=args.use_stealth,
             fetcher=tick_fetcher,
             now=tick_now,
+            max_confirm=args.max_confirm,
+            deadline_seconds=args.deadline_seconds,
         )
         json.dump(summary, sys.stdout, indent=2, default=str)
         sys.stdout.write("\n")

@@ -30,6 +30,7 @@ HANDOFF.
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Sequence
@@ -37,6 +38,8 @@ from typing import Sequence
 import psycopg
 
 from fpt.core.models import DiscoveredItem, PageType
+
+logger = logging.getLogger(__name__)
 
 # Architecture doc 5.1: "upsert tracked_urls (source DISCOVERY_CLEARANCE, TTL 120d)".
 DISCOVERY_TTL_DAYS = 120
@@ -184,6 +187,7 @@ def enroll_discovery_page(
     tracked_url_cap: int | None,
     allowed_hosts,
     resolver=None,
+    skip_enroll_urls: frozenset[str] | None = None,
 ) -> EnrollOutcome:
     """`allowed_hosts`/`resolver`: security review M3 -- a retailer's own
     grid page is untrusted input, and `item.product_url` is a value it
@@ -195,12 +199,22 @@ def enroll_discovery_page(
     trail) but is never enrolled or enqueued, and is counted separately
     from `items_capped` in the returned outcome.
 
+    `skip_enroll_urls` (mission item 3/4, throughput): a set of
+    `product_url`s that a caller has ALREADY detected/confirmed directly
+    from this grid row (`fpt.scheduler.listing_ingest`, for
+    "listing-complete" retailers) -- those URLs still get their
+    `discovery_hits`/`tracked_urls` bookkeeping here (never lost) but are
+    never turned into a per-product ENROLL crawl_task, since that fetch
+    would be pure duplicate work: the observation it would produce already
+    exists.
+
     Each item is processed in its own SAVEPOINT (robustness review M4):
     one item whose data trips a constraint the query above didn't already
     guard against (a malformed value, an unexpected DB error) is skipped
     and logged rather than rolling back every other item already
     processed in this same discovery sweep.
     """
+    skip_enroll_urls = skip_enroll_urls or frozenset()
     from fpt.fetch.url_safety import check_url_safety
 
     source = _SOURCE_BY_PAGE_TYPE.get(page_type, "DISCOVERY_CLEARANCE")
@@ -256,7 +270,7 @@ def enroll_discovery_page(
             cur.execute("UPDATE discovery_hits SET tracked_url_id = %s WHERE id = %s", (tracked_url_id, hit_id))
 
             fast_track = implied_pct is not None and implied_pct >= FAST_TRACK_MIN_IMPLIED_DISCOUNT_PCT
-            if was_new or fast_track:
+            if (was_new or fast_track) and item.product_url not in skip_enroll_urls:
                 priority = FAST_TRACK_PRIORITY if fast_track else NORMAL_ENROLL_PRIORITY
                 dedupe_key = f"ENROLL:{retailer_id}:{item.product_url}"
                 if _enqueue_enroll_task(
@@ -271,7 +285,16 @@ def enroll_discovery_page(
             cur.execute("ROLLBACK TO SAVEPOINT before_discovery_item")
             outcome.items_skipped += 1
             outcome.skip_reasons.append(f"{item.product_url}: {type(exc).__name__}")
+            logger.warning(
+                "enroller.item_skipped retailer_id=%s url=%s error=%s",
+                retailer_id, item.product_url, type(exc).__name__,
+            )
 
+    logger.info(
+        "enroller.sweep_complete retailer_id=%s hits=%d tasks_enqueued=%d capped=%d unsafe=%d skipped=%d",
+        retailer_id, len(outcome.discovery_hit_ids), outcome.tasks_enqueued, outcome.items_capped,
+        outcome.items_unsafe, outcome.items_skipped,
+    )
     return outcome
 
 

@@ -19,6 +19,7 @@ also fetches the product page for a discovered item.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from datetime import timedelta
 
@@ -44,6 +45,8 @@ from fpt.store.observations import (
     get_or_create_crawl_task,
     record_observation,
 )
+
+logger = logging.getLogger(__name__)
 
 # The confirm window (architecture 6.4, C1) -- an observation older than
 # this relative to an open deal's detection can still be a confirming
@@ -146,6 +149,7 @@ def _run_detection(
     detected_via: str,
     category: str,
     listing_url: str,
+    skip_confirm_task_enqueue: bool = False,
 ) -> DealAction:
     condition_group = deals_store.get_offer_context(cur, offer_id)["condition_group"]
 
@@ -185,10 +189,11 @@ def _run_detection(
             claimed_reference_kind=offer.claimed_reference_kind.value if offer.claimed_reference_kind else None,
             claimed_inflated=inflated,
         )
-        deals_store.enqueue_confirm_task(
-            cur, retailer_id=retailer_id, deal_id=open_deal.id, url=listing_url,
-            category_hint=category, detected_at=observed_at,
-        )
+        if not skip_confirm_task_enqueue:
+            deals_store.enqueue_confirm_task(
+                cur, retailer_id=retailer_id, deal_id=open_deal.id, url=listing_url,
+                category_hint=category, detected_at=observed_at,
+            )
         return DealAction(kind="candidate_created", deal_id=open_deal.id)
 
     # USED/OPEN_BOX/REFURB path.
@@ -208,10 +213,11 @@ def _run_detection(
         detected_via=detected_via, reference_kind="CURRENT_NEW", reference_detail={},
         detected_at=observed_at,
     )
-    deals_store.enqueue_confirm_task(
-        cur, retailer_id=retailer_id, deal_id=open_deal.id, url=listing_url,
-        category_hint=category, detected_at=observed_at,
-    )
+    if not skip_confirm_task_enqueue:
+        deals_store.enqueue_confirm_task(
+            cur, retailer_id=retailer_id, deal_id=open_deal.id, url=listing_url,
+            category_hint=category, detected_at=observed_at,
+        )
     return DealAction(kind="candidate_created", deal_id=open_deal.id)
 
 
@@ -313,6 +319,7 @@ def ingest_parsed_listing(
     task_kind: str | None = None,
     category_bands: dict | None = None,
     crawl_task_id: int | None = None,
+    skip_confirm_task_enqueue: bool = False,
 ) -> IngestOutcome:
     """Persists one PRODUCT-page (or API_BATCH) `ParsedListing` and all of
     its offers, then runs deal detection/confirmation for each offer.
@@ -333,7 +340,19 @@ def ingest_parsed_listing(
     leased (left with zero observations attributed) and this function's
     own duplicate (the one price_observations actually references). Leave
     unset only for callers with no crawl_tasks row of their own yet (e.g.
-    ad hoc/test callers, or a future BASELINE path with no queue lease)."""
+    ad hoc/test callers, or a future BASELINE path with no queue lease).
+
+    `skip_confirm_task_enqueue` (mission item 3/4, 2026-09-13): when a
+    freshly detected CANDIDATE would normally get a queued CONFIRM
+    crawl_task (a per-product PRODUCT-page fetch, `fpt.store.deals.
+    enqueue_confirm_task`), pass True to suppress that enqueue. Set this
+    when the CALLER already guarantees its own re-observation path will
+    supply the confirming fetch instead -- today, only
+    `fpt.scheduler.listing_ingest` does this (a second discovery-listing
+    sweep re-ingests the same synthetic offer and confirms it directly,
+    per that module's docstring). Leaving this False (the default) is
+    correct for every other caller: a real PRODUCT-page ENROLL fetch has
+    no other path back to this offer, so it must queue a CONFIRM task."""
     from fpt.pipeline.validate import load_category_bands
 
     # H1: reject the whole listing before any DB write if we cannot land on
@@ -345,6 +364,10 @@ def ingest_parsed_listing(
         retailer_slug=retailer_slug, candidate_url=listing.url, requested_url=response.request.url
     )
     if persisted_url is None:
+        logger.warning(
+            "pipeline.ingest_rejected retailer=%s sku=%s reason=unsafe_listing_url candidate_url=%s",
+            retailer_slug, listing.retailer_sku, listing.url,
+        )
         return IngestOutcome(listing_id=None, rejected_reason="unsafe_listing_url")
 
     bands = category_bands if category_bands is not None else load_category_bands()
@@ -460,6 +483,12 @@ def ingest_parsed_listing(
             adapter_version=adapter_version, snapshot_ref=response.snapshot_ref,
         )
         outcome.observations.append(recorded)
+        logger.info(
+            "pipeline.observation_recorded retailer=%s sku=%s offer_id=%s price_cents=%s quality=%s "
+            "reasons=%s was_duplicate=%s",
+            retailer_slug, listing.retailer_sku, offer_id, offer.price_cents, validation.quality,
+            validation.reasons, recorded.was_duplicate,
+        )
 
         if recorded.was_duplicate:
             continue  # idempotent re-run: never re-detect/re-confirm off a replayed fetch
@@ -490,12 +519,26 @@ def ingest_parsed_listing(
         )
         if confirm_action is not None:
             outcome.deal_actions.append(confirm_action)
+            logger.info(
+                "pipeline.confirm_result retailer=%s sku=%s offer_id=%s deal_id=%s status=%s",
+                retailer_slug, listing.retailer_sku, offer_id, confirm_action.deal_id, confirm_action.confirm_status,
+            )
         elif validation.quality == "OK" and offer.price_cents is not None:
             action = _run_detection(
                 cur, retailer_id=retailer_id, offer_id=offer_id, offer=offer, observed_id=recorded.observation_id,
                 observed_at=response.fetched_at, detected_via="PRODUCT_PAGE", category=category,
-                listing_url=persisted_url,
+                listing_url=persisted_url, skip_confirm_task_enqueue=skip_confirm_task_enqueue,
             )
             outcome.deal_actions.append(action)
+            if action.kind != "none":
+                logger.info(
+                    "pipeline.detect_result retailer=%s sku=%s offer_id=%s deal_id=%s kind=%s",
+                    retailer_slug, listing.retailer_sku, offer_id, action.deal_id, action.kind,
+                )
+        elif validation.quality != "OK":
+            logger.info(
+                "pipeline.no_deal_action retailer=%s sku=%s offer_id=%s reason=validation_quality_%s reasons=%s",
+                retailer_slug, listing.retailer_sku, offer_id, validation.quality, validation.reasons,
+            )
 
     return outcome
