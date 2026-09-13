@@ -223,7 +223,7 @@ def tw_only(db, monkeypatch):
     monkeypatch.setattr(
         cli_module,
         "_discovery_pages_for",
-        lambda slug: [
+        lambda slug, **_kwargs: [
             {
                 "retailer": "tackle_warehouse",
                 "page_type": "CLEARANCE_LISTING",

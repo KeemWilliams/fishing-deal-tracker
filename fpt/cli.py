@@ -72,7 +72,75 @@ def _enabled_retailers() -> list[dict]:
     return [r for r in (data.get("retailers") or []) if r.get("enabled")]
 
 
-def _discovery_pages_for(retailer_slug: str) -> list[dict]:
+def _discovery_pages_from_db(conn, *, retailer_id: int, now: datetime) -> list[dict]:
+    """Loads this retailer's discovery pages from the DB `discovery_pages`
+    table -- the authoritative, migration-seeded source (db/migrations/
+    012-019_seed_*.sql seed 20 of the 23 configured retailers; see
+    db/migrations/004_discovery.up.sql for the table itself).
+
+    A page is "due" when it has never been swept (`last_swept_at IS NULL`
+    -- always due on a fresh DB) or its last sweep plus its own
+    `interval_minutes` has elapsed by `now`. `discovery_pages.next_due_at`
+    (migration 004) is intentionally NOT used for this check: nothing in
+    this codebase ever advances it past its `DEFAULT now()` insert-time
+    value, so gating on it would make every page "due" forever after
+    being seeded regardless of `interval_minutes` -- the same silent
+    bug shape this fix is closing, just moved one column over."""
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT page_type, url, category_hint, interval_minutes, max_pages, last_swept_at
+            FROM discovery_pages
+            WHERE retailer_id = %s AND enabled
+            ORDER BY id
+            """,
+            (retailer_id,),
+        )
+        rows = cur.fetchall()
+
+    due_pages: list[dict] = []
+    for page_type, url, category_hint, interval_minutes, max_pages, last_swept_at in rows:
+        if last_swept_at is not None and now < last_swept_at + timedelta(minutes=interval_minutes):
+            continue
+        due_pages.append(
+            {
+                "page_type": page_type,
+                "url": url,
+                "category_hint": category_hint,
+                "interval_minutes": interval_minutes,
+                "max_pages": max_pages,
+            }
+        )
+    return due_pages
+
+
+def _discovery_pages_for(
+    retailer_slug: str,
+    *,
+    conn=None,
+    retailer_id: int | None = None,
+    now: datetime | None = None,
+) -> list[dict]:
+    """Discovery pages for one retailer.
+
+    Bug fixed here (found while investigating a real tick persisting zero
+    rows): this used to read ONLY `config/discovery_pages.yaml`, which
+    has only ever carried tackle_warehouse's four pages. Every other
+    retailer's discovery pages were instead seeded straight into the DB
+    `discovery_pages` table by db/migrations/012-019_seed_*.sql (a live
+    DB has rows for 20 of 23 configured retailers) -- so for ~19 enabled
+    retailers `fpt tick` silently got `pages=[]` and did nothing, every
+    tick, forever, with no error.
+
+    The DB is now the authoritative source whenever one is available and
+    this retailer has been resolved to a DB id (`conn` and `retailer_id`
+    both given): see `_discovery_pages_from_db`. Falls back to the YAML
+    file otherwise -- no live DB (dry-run / `--fixtures-manifest` /
+    offline runs) or a retailer that hasn't been seeded into `retailers`
+    yet -- which keeps existing offline behavior and tests unchanged.
+    """
+    if conn is not None and retailer_id is not None:
+        return _discovery_pages_from_db(conn, retailer_id=retailer_id, now=now or datetime.now(timezone.utc))
     data = _load_yaml(CONFIG_DIR / "discovery_pages.yaml")
     return [p for p in (data.get("discovery_pages") or []) if p.get("retailer") == retailer_slug]
 
@@ -193,7 +261,7 @@ def run_tick(
             limiter = RetailerLimiter(_build_retailer_policy(policy_cfg))
             clock = started_at
 
-            pages = _discovery_pages_for(slug)
+            pages = _discovery_pages_for(slug, conn=conn, retailer_id=retailer_id, now=clock)
             if max_discovery_pages is not None:
                 pages = pages[:max_discovery_pages]
 
