@@ -11,13 +11,16 @@ unset; DIRECT is the only mode exercised by tackle_warehouse.
 
 from __future__ import annotations
 
+import logging
 import os
 from datetime import datetime, timezone
 
 from fpt.core.models import FetchRequest, FetchResponse
 from fpt.fetch.fetcher import EgressConfig, FetchTransportError
 from fpt.fetch.redact import redact
-from fpt.fetch.snapshots import write_snapshot
+from fpt.fetch.snapshots import snapshot_ref_for, write_snapshot
+
+logger = logging.getLogger(__name__)
 
 # Security review M3: cap how many bytes a single response body may carry.
 # scrapling's plain `Fetcher.get` downloads the full body before returning
@@ -102,26 +105,48 @@ class HttpFetcher:
                 "connection", f"response body exceeds MAX_BODY_BYTES ({len(body)} > {MAX_BODY_BYTES})"
             )
 
-        # Security review M5: a snapshot write failure must be treated as a
-        # FAILED FETCH, never as a fetch that "succeeded with no snapshot"
-        # -- the previous behavior (swallow to snapshot_ref="") meant every
-        # write failure silently produced the SAME empty ref, and
+        # Security review M5 originally treated any snapshot write failure as
+        # a FAILED FETCH (raising here) specifically to avoid the OLD
+        # behavior of swallowing the error to snapshot_ref="" -- an empty
+        # ref meant every write failure silently produced the SAME ref, and
         # fpt/store/observations.py dedupes new observations against an
-        # existing one with the same (offer_id, snapshot_ref); an empty ref
-        # would have made every subsequent write-failed fetch for an offer
-        # look like a replay of the first one and get silently dropped.
+        # existing one with the same (offer_id, snapshot_ref), so a second,
+        # unrelated write-failed fetch would look like a replay of the first
+        # and get silently dropped.
+        #
+        # Bug fix 2026-09-13: that "raise on write failure" rule turned out
+        # to be too strong in practice -- on the GitHub Actions runner
+        # `/var/lib/fpt` is not writable at all, so EVERY fetch failed with
+        # FetchTransportError, robots.py's admission check caught it and
+        # reported `robots_txt_unreachable`, and the daily crawl wrote zero
+        # rows. A snapshot is an audit artifact, not the fetch itself: a
+        # write failure is now non-fatal and only logged, and the fetched
+        # response is still returned so callers (robots check, discovery,
+        # adapter parsing) can use it.
+        #
+        # The dedupe-safety concern above is still fully addressed: the ref
+        # is a pure function of (task_id, fetched_at, content hash) via
+        # `snapshot_ref_for`, computed unconditionally BEFORE the write is
+        # even attempted, so it is never empty and two different
+        # write-failed fetches (different content and/or timestamp) never
+        # collide on the same ref.
+        snapshot_ref = snapshot_ref_for(request.task_id, fetched_at, body)
         try:
-            snapshot_ref = write_snapshot(
+            written_ref = write_snapshot(
                 body,
                 task_id=request.task_id,
                 fetched_at=fetched_at,
                 snapshot_dir=self.snapshot_dir,
             )
-        except Exception as exc:  # noqa: BLE001
-            raise FetchTransportError("connection", f"snapshot write failed: {redact(str(exc))}") from exc
-
-        if not snapshot_ref:  # pragma: no cover - defensive; write_snapshot never returns falsy today
-            raise FetchTransportError("connection", "snapshot write returned an empty ref")
+            snapshot_ref = written_ref or snapshot_ref
+        except Exception as exc:  # noqa: BLE001 - never let an audit-artifact write abort the fetch
+            logger.warning(
+                "snapshot write failed for task_id=%s (continuing without a "
+                "persisted snapshot; using content-hash ref %s): %s",
+                request.task_id,
+                snapshot_ref,
+                redact(str(exc)),
+            )
 
         return FetchResponse(
             request=request,

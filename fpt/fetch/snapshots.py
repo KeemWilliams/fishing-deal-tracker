@@ -5,6 +5,17 @@ that a parser change can be validated against exact historical bytes
 without re-fetching. Never stores credentials -- callers pass only the
 response body, which by construction (fetch layer contract) never
 contains API keys added at call time.
+
+Bug fix 2026-09-13: the snapshot base directory used to default to a
+hardcoded `/var/lib/fpt/snapshots`, which is not writable by an
+unprivileged runner user (confirmed on the GitHub Actions runner:
+`PermissionError: [Errno 13] Permission denied: '/var/lib/fpt'`). That
+directory is not created or provisioned by anything in this repo -- it
+only ever worked by coincidence on machines where it happened to already
+exist and be writable. The default is now a per-user writable path under
+the OS temp directory, and is still overridable via `FPT_SNAPSHOT_DIR`
+for deployments that want a persistent, provisioned location (e.g. a
+mounted volume in production).
 """
 
 from __future__ import annotations
@@ -12,10 +23,12 @@ from __future__ import annotations
 import gzip
 import hashlib
 import os
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-DEFAULT_SNAPSHOT_DIR = Path(os.environ.get("FPT_SNAPSHOT_DIR", "/var/lib/fpt/snapshots"))
+_DEFAULT_SNAPSHOT_DIR_FALLBACK = os.path.join(tempfile.gettempdir(), "fpt-snapshots")
+DEFAULT_SNAPSHOT_DIR = Path(os.environ.get("FPT_SNAPSHOT_DIR", _DEFAULT_SNAPSHOT_DIR_FALLBACK))
 
 
 def snapshot_ref_for(task_id: int, fetched_at: datetime, body: bytes) -> str:

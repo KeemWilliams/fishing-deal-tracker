@@ -43,11 +43,14 @@ class TestBodySizeCap:
 
 
 class TestSnapshotFailureHandling:
-    def test_snapshot_write_failure_is_a_failed_fetch_not_an_empty_ref(self, monkeypatch, tmp_path):
-        """Security review M5: previously this swallowed the exception and
-        returned snapshot_ref="" -- now it must raise, so the caller treats
-        it exactly like any other transport failure and never stores an
-        observation for it."""
+    def test_snapshot_write_failure_is_non_fatal_and_returns_the_response(self, monkeypatch, tmp_path, caplog):
+        """Bug fix 2026-09-13: a snapshot write failure (e.g. permission
+        denied writing to an unwritable snapshot dir, as happened on the
+        GitHub Actions runner against the old hardcoded /var/lib/fpt
+        default) must NOT abort the fetch. The snapshot is an audit
+        artifact; the fetched body must still reach the caller (robots
+        check, discovery, adapter parsing) and the response must still
+        carry a usable, non-empty snapshot_ref."""
         fetcher = HttpFetcher(snapshot_dir=tmp_path)
         monkeypatch.setattr(fetcher, "_do_fetch", lambda *a, **k: _scrapling_response(b"some body"))
 
@@ -58,27 +61,36 @@ class TestSnapshotFailureHandling:
 
         monkeypatch.setattr(http_fetcher_module, "write_snapshot", _boom)
 
-        with pytest.raises(FetchTransportError) as excinfo:
-            fetcher.fetch(_request(), EgressConfig(mode="DIRECT"), "ua", 10.0)
-        assert "snapshot write failed" in str(excinfo.value)
+        with caplog.at_level("WARNING"):
+            response = fetcher.fetch(_request(), EgressConfig(mode="DIRECT"), "ua", 10.0)
 
-    def test_two_write_failures_never_produce_the_same_empty_ref(self, monkeypatch, tmp_path):
-        """Regression guard for the exact bug: two DIFFERENT fetches that
-        both fail to snapshot must not look like the same observation to
-        fpt/store/observations.py's dedupe (which keys on snapshot_ref)."""
+        assert response.body == b"some body"
+        assert response.snapshot_ref  # never empty, even though nothing was written
+        assert any("snapshot write failed" in record.getMessage() for record in caplog.records)
+
+    def test_two_write_failures_never_produce_the_same_ref(self, monkeypatch, tmp_path):
+        """Regression guard for the dedupe-safety concern behind the
+        original design: two DIFFERENT fetches that both fail to snapshot
+        must not look like the same observation to
+        fpt/store/observations.py's dedupe (which keys on snapshot_ref).
+        The ref is content-hash-based and computed before the write is even
+        attempted, so this holds regardless of whether the write
+        succeeds."""
         fetcher = HttpFetcher(snapshot_dir=tmp_path)
-        monkeypatch.setattr(fetcher, "_do_fetch", lambda *a, **k: _scrapling_response(b"body one"))
 
         import fpt.fetch.http_fetcher as http_fetcher_module
 
         monkeypatch.setattr(http_fetcher_module, "write_snapshot", lambda *a, **k: (_ for _ in ()).throw(OSError("x")))
 
-        with pytest.raises(FetchTransportError):
-            fetcher.fetch(_request(), EgressConfig(mode="DIRECT"), "ua", 10.0)
-        with pytest.raises(FetchTransportError):
-            fetcher.fetch(_request(), EgressConfig(mode="DIRECT"), "ua", 10.0)
-        # Both raised -- neither ever reached the caller with a
-        # snapshot_ref="" FetchResponse that could dedupe against the other.
+        monkeypatch.setattr(fetcher, "_do_fetch", lambda *a, **k: _scrapling_response(b"body one"))
+        response_one = fetcher.fetch(_request(), EgressConfig(mode="DIRECT"), "ua", 10.0)
+
+        monkeypatch.setattr(fetcher, "_do_fetch", lambda *a, **k: _scrapling_response(b"body two"))
+        response_two = fetcher.fetch(_request(), EgressConfig(mode="DIRECT"), "ua", 10.0)
+
+        assert response_one.snapshot_ref
+        assert response_two.snapshot_ref
+        assert response_one.snapshot_ref != response_two.snapshot_ref
 
 
 class TestRedaction:
