@@ -1,0 +1,73 @@
+{
+  "products": [
+    {
+      "id": 9623900651842,
+      "title": "Catch Ugly Fish Catfish Spinning Combo",
+      "handle": "catch-ugly-fish-catfish-spinning-combo-1523084",
+      "vendor": "Ugly Stik",
+      "tags": [
+        "Brand:Ugly Stik®",
+        "Category:Combos",
+        "Series:Ugly Stik Catch Ugly Fish",
+        "Subcategory:Spinning Combos",
+        "Subseries:Ugly Stik Catch Ugly Fish",
+        "Tag:Freshwater",
+        "tag:sale"
+      ],
+      "variants": [
+        {
+          "id": 49292460261698,
+          "title": "Default Title",
+          "option1": "Default Title",
+          "option2": null,
+          "option3": null,
+          "sku": "1515346",
+          "available": true,
+          "price": "56.99",
+          "compare_at_price": "94.95"
+        }
+      ]
+    },
+    {
+      "id": 9623902290242,
+      "title": "Bigwater Conventional Rod",
+      "handle": "bigwater-conventional-rod-1292629",
+      "vendor": "Ugly Stik",
+      "tags": [
+        "Brand:Ugly Stik®",
+        "Category:Rods",
+        "Series:Ugly Stik Bigwater",
+        "Subcategory:Casting Rods",
+        "Subseries:Ugly Stik Bigwater",
+        "Tag:All Water Types",
+        "tag:bestseller",
+        "tag:sale",
+        "Tag:Saltwater"
+      ],
+      "variants": [
+        {
+          "id": 49292463931714,
+          "title": "5'6\" / Medium Heavy / 15 - 30 lb",
+          "option1": "5'6\"",
+          "option2": "Medium Heavy",
+          "option3": "15 - 30 lb",
+          "sku": "1539213",
+          "available": true,
+          "price": "84.95",
+          "compare_at_price": null
+        },
+        {
+          "id": 49292463898946,
+          "title": "6' / Medium / 15 - 25 lb",
+          "option1": "6'",
+          "option2": "Medium",
+          "option3": "15 - 25 lb",
+          "sku": "1539212",
+          "available": true,
+          "price": "84.95",
+          "compare_at_price": null
+        }
+      ]
+    }
+  ]
+}

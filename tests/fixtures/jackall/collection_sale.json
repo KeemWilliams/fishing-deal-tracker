@@ -1,0 +1,72 @@
+{
+  "products": [
+    {
+      "id": 14982562906482,
+      "title": "DUNKLE",
+      "handle": "dunkle",
+      "vendor": "Jackall",
+      "tags": [
+        "freshwater_lure",
+        "JACKALL"
+      ],
+      "variants": [
+        {
+          "id": 61609066856818,
+          "title": "7 in (1/pack) / CHARTSTRIKE GILL",
+          "option1": "7 in (1/pack)",
+          "option2": "CHARTSTRIKE GILL",
+          "option3": null,
+          "sku": "JDUNK7-CHSG",
+          "available": true,
+          "price": "10.07",
+          "compare_at_price": "24.99"
+        },
+        {
+          "id": 61609066889586,
+          "title": "7 in (1/pack) / DARK THUNDER",
+          "option1": "7 in (1/pack)",
+          "option2": "DARK THUNDER",
+          "option3": null,
+          "sku": "JDUNK7-DTH",
+          "available": true,
+          "price": "10.07",
+          "compare_at_price": "24.99"
+        }
+      ]
+    },
+    {
+      "id": 14982563103090,
+      "title": "MC 60 SR",
+      "handle": "mc-60-sr",
+      "vendor": "Jackall",
+      "tags": [
+        "freshwater_lure",
+        "JACKALL"
+      ],
+      "variants": [
+        {
+          "id": 61609068626290,
+          "title": "2.5 in / SPARKLE SS SHAD",
+          "option1": "2.5 in",
+          "option2": "SPARKLE SS SHAD",
+          "option3": null,
+          "sku": "JMC60SR-SSSH",
+          "available": true,
+          "price": "8.07",
+          "compare_at_price": "18.99"
+        },
+        {
+          "id": 61609068659058,
+          "title": "2.5 in / GHOST BROWN CRAW",
+          "option1": "2.5 in",
+          "option2": "GHOST BROWN CRAW",
+          "option3": null,
+          "sku": "JMC60SR-GBRC",
+          "available": true,
+          "price": "8.07",
+          "compare_at_price": "18.99"
+        }
+      ]
+    }
+  ]
+}

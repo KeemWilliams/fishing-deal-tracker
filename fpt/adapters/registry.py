@@ -38,18 +38,27 @@ def _register_builtin_adapters() -> None:
     # Imported lazily to avoid import cost/cycles for callers that only
     # need the registry API surface (e.g. tests exercising a single
     # adapter directly without loading every retailer's dependencies).
+    from fpt.adapters.abugarcia import AbuGarciaAdapter
     from fpt.adapters.academy import AcademyAdapter
     from fpt.adapters.alltackle import AlltackleAdapter
     from fpt.adapters.basspro import BassProAdapter
+    from fpt.adapters.berkley import BerkleyAdapter
     from fpt.adapters.cabelas import CabelasAdapter
     from fpt.adapters.dicks import DicksAdapter
     from fpt.adapters.discounttackle import DiscountTackleAdapter
     from fpt.adapters.fishingonline import FishingOnlineAdapter
     from fpt.adapters.fishusa import FishUSAAdapter
+    from fpt.adapters.gloomis import GLoomisAdapter
+    from fpt.adapters.jackall import JackallAdapter
     from fpt.adapters.jandh import JandhAdapter
+    from fpt.adapters.penn import PennAdapter
+    from fpt.adapters.pflueger import PfluegerAdapter
+    from fpt.adapters.powerpro import PowerProAdapter
     from fpt.adapters.rodlocker import RodLockerAdapter
+    from fpt.adapters.shimano import ShimanoAdapter
     from fpt.adapters.tackle_warehouse import TackleWarehouseAdapter
     from fpt.adapters.tackledirect import TackleDirectAdapter
+    from fpt.adapters.uglystik import UglyStikAdapter
 
     register(TackleWarehouseAdapter())
     # Academy and J&H were committed earlier but were never wired into this
@@ -83,6 +92,24 @@ def _register_builtin_adapters() -> None:
     # boundary as Bass Pro.
     register(CabelasAdapter())
     register(DicksAdapter())
+    # Manufacturer/brand clearance storefronts -- added in this task
+    # (2026-09-13). Two Shopify-platform families, both read via the same
+    # shared fpt/adapters/_shopify_collection.py adapter as fishingonline/
+    # discounttackle/rodlocker above: Pure Fishing, Inc. (Abu Garcia, Penn,
+    # Pflueger, Ugly Stik, Berkley) each on their own domain, and Shimano
+    # North America Fishing (Shimano, G. Loomis, PowerPro, Jackall Lures)
+    # sharing one storefront domain (fishshop.shimano.com) via four
+    # distinct sale-collection handles. See knowledge/research/fishing-
+    # manufacturer-sites-2026-09-13.md and each adapter's module docstring.
+    register(AbuGarciaAdapter())
+    register(PennAdapter())
+    register(PfluegerAdapter())
+    register(UglyStikAdapter())
+    register(BerkleyAdapter())
+    register(ShimanoAdapter())
+    register(GLoomisAdapter())
+    register(PowerProAdapter())
+    register(JackallAdapter())
 
 
 _register_builtin_adapters()

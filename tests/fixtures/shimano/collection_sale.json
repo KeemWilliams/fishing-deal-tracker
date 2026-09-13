@@ -1,0 +1,83 @@
+{
+  "products": [
+    {
+      "id": 14970613858674,
+      "title": "STELLA SW  C",
+      "handle": "stella-sw-c",
+      "vendor": "Shimano",
+      "tags": [
+        "tec_AR-CSPOOL_RL_SP",
+        "tec_CROSSCARBONDRAG_RL_SP",
+        "tec_HAGANEBODY_RL_SP",
+        "tec_HAGANEGEAR_RL_SP",
+        "tec_HEATSINKDRAG_RL_SP",
+        "tec_IPX8WaterproofBody",
+        "tec_ONE-PIECEBAIL_RL_SP",
+        "tec_RIGIDSUPPORTDRAG_RL_SP",
+        "tec_SA-RB_RL_SP",
+        "tec_SILENTDRIVE_RL_SP",
+        "tec_XSHIELD_RL_SP",
+        "tec_XSHIP_RL_SP",
+        "tec_XTOUGHDRAG_RL_SP"
+      ],
+      "variants": [
+        {
+          "id": 61578287874418,
+          "title": "STLSW8000PGC",
+          "option1": "STLSW8000PGC",
+          "option2": null,
+          "option3": null,
+          "sku": "STLSW8000PGC",
+          "available": false,
+          "price": "769.47",
+          "compare_at_price": "1099.99"
+        },
+        {
+          "id": 61578287939954,
+          "title": "STLSW4000XGC",
+          "option1": "STLSW4000XGC",
+          "option2": null,
+          "option3": null,
+          "sku": "STLSW4000XGC",
+          "available": true,
+          "price": "799.57",
+          "compare_at_price": "1049.99"
+        }
+      ]
+    },
+    {
+      "id": 14970606289266,
+      "title": "TEREZ BW FULL ROLLER UNI BUTT",
+      "handle": "terez-bw-full-roller-uni-butt",
+      "vendor": "Shimano",
+      "tags": [
+        "tec_HI-POWERX_RD",
+        "tec_SPIRALX_RD"
+      ],
+      "variants": [
+        {
+          "id": 61578236658034,
+          "title": "TZBW48MHFRUBA",
+          "option1": "TZBW48MHFRUBA",
+          "option2": null,
+          "option3": null,
+          "sku": "TZBW48MHFRUBA",
+          "available": true,
+          "price": "1199.99",
+          "compare_at_price": null
+        },
+        {
+          "id": 61578236690802,
+          "title": "TZBW48XHFRUBA",
+          "option1": "TZBW48XHFRUBA",
+          "option2": null,
+          "option3": null,
+          "sku": "TZBW48XHFRUBA",
+          "available": false,
+          "price": "1199.99",
+          "compare_at_price": null
+        }
+      ]
+    }
+  ]
+}

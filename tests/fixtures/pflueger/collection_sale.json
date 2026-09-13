@@ -1,0 +1,86 @@
+{
+  "products": [
+    {
+      "id": 8783958737147,
+      "title": "President® Spinning Combo",
+      "handle": "president-spinning-combo-1595563",
+      "vendor": "Pflueger",
+      "tags": [
+        "Brand:Pflueger®",
+        "Category:Combos",
+        "group:president-spinning-combo",
+        "Series:Pflueger President",
+        "Subcategory:Spinning Combos",
+        "Subseries:Pflueger President",
+        "tag:bestseller",
+        "Tag:Freshwater",
+        "tag:sale"
+      ],
+      "variants": [
+        {
+          "id": 46434172764411,
+          "title": "4'8\" / Ultra Light / 2",
+          "option1": "4'8\"",
+          "option2": "Ultra Light",
+          "option3": "2",
+          "sku": "1591999",
+          "available": true,
+          "price": "95.99",
+          "compare_at_price": "119.99"
+        },
+        {
+          "id": 46434172797179,
+          "title": "5' / Ultra Light / 1",
+          "option1": "5'",
+          "option2": "Ultra Light",
+          "option3": "1",
+          "sku": "1592000",
+          "available": true,
+          "price": "95.99",
+          "compare_at_price": "119.99"
+        }
+      ]
+    },
+    {
+      "id": 8783964995835,
+      "title": "President® LE Spinning Reel",
+      "handle": "president-le-spinning-reel-1595564",
+      "vendor": "Pflueger",
+      "tags": [
+        "Brand:Pflueger®",
+        "Category:Reels",
+        "group:president-spinning-reel",
+        "Series:Pflueger President",
+        "Subcategory:Spinning Reels",
+        "Subseries:Pflueger President",
+        "Subseries:Pflueger President LE",
+        "Tag:Freshwater",
+        "tag:sale"
+      ],
+      "variants": [
+        {
+          "id": 46434185511163,
+          "title": "25",
+          "option1": "25",
+          "option2": null,
+          "option3": null,
+          "sku": "1594569",
+          "available": true,
+          "price": "56.99",
+          "compare_at_price": "74.95"
+        },
+        {
+          "id": 46434185543931,
+          "title": "30",
+          "option1": "30",
+          "option2": null,
+          "option3": null,
+          "sku": "1594570",
+          "available": true,
+          "price": "56.99",
+          "compare_at_price": "74.95"
+        }
+      ]
+    }
+  ]
+}

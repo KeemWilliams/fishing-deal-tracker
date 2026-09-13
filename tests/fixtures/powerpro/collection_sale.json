@@ -1,0 +1,70 @@
+{
+  "products": [
+    {
+      "id": 14970619363698,
+      "title": "Super 8 Slick V2",
+      "handle": "powerprosuper8slick-v2",
+      "vendor": "PowerPro",
+      "tags": [
+        "PP_GENERAL"
+      ],
+      "variants": [
+        {
+          "id": 61578321297778,
+          "title": "10lb / 1500yd/1371m / ONYX",
+          "option1": "10lb",
+          "option2": "1500yd/1371m",
+          "option3": "ONYX",
+          "sku": "31500101500X",
+          "available": true,
+          "price": "199.00",
+          "compare_at_price": null
+        },
+        {
+          "id": 61578321330546,
+          "title": "8lb / 300yd/274m / MOSS GREEN",
+          "option1": "8lb",
+          "option2": "300yd/274m",
+          "option3": "MOSS GREEN",
+          "sku": "31500080300E",
+          "available": true,
+          "price": "38.50",
+          "compare_at_price": null
+        }
+      ]
+    },
+    {
+      "id": 14970610712946,
+      "title": "PowerPro",
+      "handle": "powerpro",
+      "vendor": "PowerPro",
+      "tags": [
+        "PP_GENERAL"
+      ],
+      "variants": [
+        {
+          "id": 61578260119922,
+          "title": "65lb / 100yd/92m / MOSS GREEN",
+          "option1": "65lb",
+          "option2": "100yd/92m",
+          "option3": "MOSS GREEN",
+          "sku": "21100650100E",
+          "available": true,
+          "price": "17.50",
+          "compare_at_price": null
+        },
+        {
+          "id": 61578260152690,
+          "title": "8lb / 150yd/135m / HIVIS YELLOW",
+          "option1": "8lb",
+          "option2": "150yd/135m",
+          "option3": "HIVIS YELLOW",
+          "sku": "21100080150Y",
+          "available": false,
+          "price": "18.50",
+          "compare_at_price": null
+        }
+      ]
+    }
+  ]
+}

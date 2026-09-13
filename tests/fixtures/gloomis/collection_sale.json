@@ -1,0 +1,75 @@
+{
+  "products": [
+    {
+      "id": 14970611958130,
+      "title": "ASQUITH SPEY (2016)",
+      "handle": "asquith-spey",
+      "vendor": "G. Loomis",
+      "tags": [
+        "SPEY + SWITCH",
+        "tec_GRF_Spiral_X",
+        "tec_GRF_Titanium_Recoil_Guide_Train"
+      ],
+      "variants": [
+        {
+          "id": 61578276438386,
+          "title": "12530-01",
+          "option1": "12530-01",
+          "option2": null,
+          "option3": null,
+          "sku": "12530-01",
+          "available": true,
+          "price": "1505.00",
+          "compare_at_price": null
+        },
+        {
+          "id": 61578276503922,
+          "title": "12533-01",
+          "option1": "12533-01",
+          "option2": null,
+          "option3": null,
+          "sku": "12533-01",
+          "available": true,
+          "price": "1062.57",
+          "compare_at_price": "1715.00"
+        }
+      ]
+    },
+    {
+      "id": 14970611827058,
+      "title": "NRX+ SPEY",
+      "handle": "nrx-plus-fly-spey",
+      "vendor": "G. Loomis",
+      "tags": [
+        "SPEY + SWITCH",
+        "tec_GRF_Dynamic_Recovery_Technology",
+        "tec_GRF_NRX_Matrix",
+        "tec_GRF_Titanium_Recoil_Guide_Train"
+      ],
+      "variants": [
+        {
+          "id": 61578276045170,
+          "title": "12827-01",
+          "option1": "12827-01",
+          "option2": null,
+          "option3": null,
+          "sku": "12827-01",
+          "available": true,
+          "price": "1120.00",
+          "compare_at_price": null
+        },
+        {
+          "id": 61578276077938,
+          "title": "12828-01",
+          "option1": "12828-01",
+          "option2": null,
+          "option3": null,
+          "sku": "12828-01",
+          "available": true,
+          "price": "1120.00",
+          "compare_at_price": null
+        }
+      ]
+    }
+  ]
+}

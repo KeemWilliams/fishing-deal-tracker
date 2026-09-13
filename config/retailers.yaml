@@ -222,3 +222,133 @@ retailers:
     egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
     user_agent_profile: identified
     tracked_url_cap: 2500
+
+  # --- Added this task (2026-09-13): manufacturer/brand clearance sites ---
+  # See knowledge/research/fishing-manufacturer-sites-2026-09-13.md. Two
+  # Shopify-platform families, both read via the same shared
+  # fpt/adapters/_shopify_collection.py adapter as fishingonline/
+  # discounttackle/rodlocker above.
+  #
+  # Family 1 (Pure Fishing, Inc.): Abu Garcia, Penn, Pflueger, Ugly Stik,
+  # Berkley -- five separate brand domains on the identical Shopify theme,
+  # one retailer entry each. All five verified live 2026-09-13: robots.txt
+  # allows `User-agent: *` (no ClaudeBot/Claude-User specific disallow),
+  # `/collections/sale/products.json` is a real, non-empty, robots-allowed
+  # collection. Canonical host is `www.<domain>` for four of the five
+  # (bare apex 301-redirects there); Pflueger is the one exception --
+  # its bare apex `pfluegerfishing.com` is canonical (the `www.` host
+  # redirects instead), matching the scout report's host naming.
+  - slug: abugarcia
+    name: "Abu Garcia"
+    base_url: "https://www.abugarcia.com"
+    adapter_slug: abugarcia
+    enabled: true
+    allowed_hosts: [www.abugarcia.com]
+    stealth_approved: false
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
+
+  - slug: penn
+    name: "Penn"
+    base_url: "https://www.pennfishing.com"
+    adapter_slug: penn
+    enabled: true
+    allowed_hosts: [www.pennfishing.com]
+    stealth_approved: false
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
+
+  - slug: pflueger
+    name: "Pflueger"
+    base_url: "https://pfluegerfishing.com"
+    adapter_slug: pflueger
+    enabled: true
+    allowed_hosts: [pfluegerfishing.com]
+    stealth_approved: false
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
+
+  - slug: uglystik
+    name: "Ugly Stik"
+    base_url: "https://www.uglystik.com"
+    adapter_slug: uglystik
+    enabled: true
+    allowed_hosts: [www.uglystik.com]
+    stealth_approved: false
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
+
+  - slug: berkley
+    name: "Berkley"
+    base_url: "https://www.berkley-fishing.com"
+    adapter_slug: berkley
+    enabled: true
+    allowed_hosts: [www.berkley-fishing.com]
+    stealth_approved: false
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
+
+  # Family 2 (Shimano North America Fishing): Shimano, G. Loomis, PowerPro,
+  # Jackall Lures all share ONE storefront domain, fishshop.shimano.com --
+  # modeled as four separate retailer entries (one per brand/seller_key,
+  # see fpt/adapters/shimano.py's module docstring for the rationale)
+  # sharing the same `allowed_hosts`. All four collection handles verified
+  # live 2026-09-13, including `last-cast-savings-powerpro`, which the
+  # scout report had flagged as an unconfirmed guess.
+  - slug: shimano
+    name: "Shimano"
+    base_url: "https://fishshop.shimano.com"
+    adapter_slug: shimano
+    enabled: true
+    allowed_hosts: [fishshop.shimano.com]
+    stealth_approved: false
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
+
+  - slug: gloomis
+    name: "G. Loomis"
+    base_url: "https://fishshop.shimano.com"
+    adapter_slug: gloomis
+    enabled: true
+    allowed_hosts: [fishshop.shimano.com]
+    stealth_approved: false
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
+
+  - slug: powerpro
+    name: "PowerPro"
+    base_url: "https://fishshop.shimano.com"
+    adapter_slug: powerpro
+    enabled: true
+    allowed_hosts: [fishshop.shimano.com]
+    stealth_approved: false
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
+
+  - slug: jackall
+    name: "Jackall Lures"
+    base_url: "https://fishshop.shimano.com"
+    adapter_slug: jackall
+    enabled: true
+    allowed_hosts: [fishshop.shimano.com]
+    stealth_approved: false
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500

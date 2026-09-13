@@ -1,0 +1,87 @@
+{
+  "products": [
+    {
+      "id": 7459650666636,
+      "title": "Fierce® IV Spinning Combo",
+      "handle": "fierce-iv-spinning-rod-and-reel-combo-1573577",
+      "vendor": "PENN",
+      "tags": [
+        "brand:penn",
+        "group:fierce-iv-spinning-combo",
+        "sap_category:combos",
+        "sap_series:penn fierce",
+        "sap_subcategory:spinning combos",
+        "sap_subseries:penn fierce iv",
+        "tag:sale"
+      ],
+      "variants": [
+        {
+          "id": 41966363803788,
+          "title": "2000 / Medium Light / 6'6\"",
+          "option1": "2000",
+          "option2": "Medium Light",
+          "option3": "6'6\"",
+          "sku": "1558666",
+          "available": true,
+          "price": "107.99",
+          "compare_at_price": "134.99"
+        },
+        {
+          "id": 41966363869324,
+          "title": "2500 / Medium Light / 7'",
+          "option1": "2500",
+          "option2": "Medium Light",
+          "option3": "7'",
+          "sku": "1558667",
+          "available": true,
+          "price": "107.99",
+          "compare_at_price": "134.99"
+        }
+      ]
+    },
+    {
+      "id": 7459650044044,
+      "title": "Fierce® IV Live Liner Spinning Combo",
+      "handle": "fierce-iv-live-liner-spinning-rod-and-reel-combo-1573572",
+      "vendor": "PENN",
+      "tags": [
+        "brand:penn",
+        "group:fierce-iv-spinning-combo",
+        "Inshore",
+        "Live Liner",
+        "Nearshore",
+        "Offshore",
+        "sap_category:combos",
+        "sap_series:penn fierce",
+        "sap_subcategory:spinning combos",
+        "sap_subseries:penn fierce iv live liner",
+        "Surf",
+        "tag:sale"
+      ],
+      "variants": [
+        {
+          "id": 41966360690828,
+          "title": "4000 / Medium / 7'",
+          "option1": "4000",
+          "option2": "Medium",
+          "option3": "7'",
+          "sku": "1558681",
+          "available": true,
+          "price": "131.99",
+          "compare_at_price": "164.99"
+        },
+        {
+          "id": 41966360920204,
+          "title": "6000 / Medium Heavy / 7'",
+          "option1": "6000",
+          "option2": "Medium Heavy",
+          "option3": "7'",
+          "sku": "1558682",
+          "available": true,
+          "price": "139.99",
+          "compare_at_price": "174.99"
+        }
+      ]
+    }
+  ]
+}

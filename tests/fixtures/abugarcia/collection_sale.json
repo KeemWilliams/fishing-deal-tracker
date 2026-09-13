@@ -1,0 +1,79 @@
+{
+  "products": [
+    {
+      "id": 7560081113227,
+      "title": "Max™ SX Spinning Reel",
+      "handle": "max-sx-spinning-reel-1624368",
+      "vendor": "Abu Garcia",
+      "tags": [
+        "category:Reels",
+        "series:Abu Garcia Max",
+        "subcategory:Baitcast_Combos",
+        "subcategory:Spinning Reels",
+        "subseries:Abu Garcia Max SX",
+        "tag:sale"
+      ],
+      "variants": [
+        {
+          "id": 42802631999627,
+          "title": "750",
+          "option1": "750",
+          "option2": null,
+          "option3": null,
+          "sku": "1609809",
+          "available": true,
+          "price": "48.99",
+          "compare_at_price": "64.99"
+        },
+        {
+          "id": 42802632163467,
+          "title": "2000",
+          "option1": "2000",
+          "option2": null,
+          "option3": null,
+          "sku": "1609811",
+          "available": true,
+          "price": "64.99",
+          "compare_at_price": null
+        }
+      ]
+    },
+    {
+      "id": 7560080523403,
+      "title": "Max™ Pro Spinning Reel",
+      "handle": "max-pro-spinning-reel-1624367",
+      "vendor": "Abu Garcia",
+      "tags": [
+        "category:Reels",
+        "series:Abu_Garcia_Max",
+        "subcategory:Spinning_Reels",
+        "subseries:Abu_Garcia_Max_Pro",
+        "tag:sale"
+      ],
+      "variants": [
+        {
+          "id": 42802628984971,
+          "title": "750",
+          "option1": "750",
+          "option2": null,
+          "option3": null,
+          "sku": "1609819",
+          "available": true,
+          "price": "63.99",
+          "compare_at_price": "84.99"
+        },
+        {
+          "id": 42802629017739,
+          "title": "2000",
+          "option1": "2000",
+          "option2": null,
+          "option3": null,
+          "sku": "1609821",
+          "available": true,
+          "price": "84.99",
+          "compare_at_price": null
+        }
+      ]
+    }
+  ]
+}

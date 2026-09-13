@@ -1,0 +1,118 @@
+{
+  "products": [
+    {
+      "id": 7376920281227,
+      "title": "Choppo",
+      "handle": "choppo",
+      "vendor": "Berkley",
+      "tags": [
+        "Category:Bait",
+        "product_type:topwater_baits",
+        "series:berkley",
+        "subcategory:hard_bait",
+        "subseries:berkley_choppo",
+        "tag:bass",
+        "tag:bestseller",
+        "water_type:freshwater"
+      ],
+      "variants": [
+        {
+          "id": 42291027247243,
+          "title": "HD Baby Bass / 75",
+          "option1": "HD Baby Bass",
+          "option2": "75",
+          "option3": null,
+          "sku": "1547137",
+          "available": true,
+          "price": "14.99",
+          "compare_at_price": null
+        },
+        {
+          "id": 42291028459659,
+          "title": "HD Baby Bass / 90",
+          "option1": "HD Baby Bass",
+          "option2": "90",
+          "option3": null,
+          "sku": "1547143",
+          "available": true,
+          "price": "14.99",
+          "compare_at_price": null
+        }
+      ]
+    },
+    {
+      "id": 7376920739979,
+      "title": "Hit Stick",
+      "handle": "hit-stick",
+      "vendor": "Berkley",
+      "tags": [
+        "Category:Bait",
+        "product_type:crankbaits",
+        "series:berkley",
+        "subcategory:hard_bait",
+        "subseries:berkley_hit_stick",
+        "tag:bestseller",
+        "tag:walleye",
+        "water_type:freshwater"
+      ],
+      "variants": [
+        {
+          "id": 42291039862923,
+          "title": "Sand Shiner / 3.5",
+          "option1": "Sand Shiner",
+          "option2": "3.5",
+          "option3": null,
+          "sku": "1522601",
+          "available": false,
+          "price": "3.99",
+          "compare_at_price": "7.99"
+        },
+        {
+          "id": 42291040059531,
+          "title": "Clown / 3.5",
+          "option1": "Clown",
+          "option2": "3.5",
+          "option3": null,
+          "sku": "1522603",
+          "available": false,
+          "price": "3.99",
+          "compare_at_price": "7.99"
+        }
+      ]
+    },
+    {
+      "id": 9999999999999,
+      "title": "Gulp! Alive! Minnow (EDLP, synthesized)",
+      "handle": "gulp-alive-minnow-edlp-synthetic",
+      "vendor": "Berkley",
+      "tags": [
+        "Category:Bait",
+        "tag:sale"
+      ],
+      "variants": [
+        {
+          "id": 49999999999901,
+          "title": "Emerald Shiner / 3in",
+          "option1": "Emerald Shiner",
+          "option2": "3in",
+          "option3": null,
+          "sku": "9999901",
+          "available": true,
+          "price": "5.99",
+          "compare_at_price": "5.99"
+        },
+        {
+          "id": 49999999999902,
+          "title": "Emerald Shiner / 4in",
+          "option1": "Emerald Shiner",
+          "option2": "4in",
+          "option3": null,
+          "sku": "9999902",
+          "available": true,
+          "price": "6.99",
+          "compare_at_price": "6.99"
+        }
+      ]
+    }
+  ]
+}
