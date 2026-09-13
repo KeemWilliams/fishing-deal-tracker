@@ -268,27 +268,30 @@ def test_tackle_warehouse_new_rod_deep_discount_confirms_active(db):
     assert cur.fetchone()[0] == 23  # 21 baseline + 1 candidate + 1 confirm
 
 
-def test_deal_cannot_be_active_without_confirming_observation_recorded(db):
-    """Schema-level guard: nothing prevents an application bug from setting
-    status=ACTIVE with confirming_observation_id still NULL -- there is no
-    CHECK enforcing this. Documents the gap; does not assert it's blocked."""
+@pytest.mark.parametrize("status", ["ACTIVE", "HELD_REVIEW", "EXPIRED"])
+def test_confirmed_status_without_confirming_observation_is_rejected_by_db(db, status):
+    """FIXED (migration 014_deal_confirmation_and_currency, commit 40a8a5c):
+    deals_confirmed_status_requires_observation now enforces that ACTIVE,
+    HELD_REVIEW and EXPIRED all require a non-null confirming_observation_id
+    -- this used to succeed silently (former MEDIUM-3 finding); it must now
+    raise a CheckViolation naming that exact constraint."""
     cur = db.cursor()
     retailer_id = get_retailer_id(cur, "tackle_warehouse")
-    brand_id = seed_brand(cur, "GapTestBrand")
+    brand_id = seed_brand(cur, f"GapTestBrand-{status}")
     _, variant_id = seed_product_variant(
-        cur, brand_id=brand_id, slug="gap-test", category="rod",
-        model_key="gap-1", variant_key="vk-gap", label="Gap Test Rod",
+        cur, brand_id=brand_id, slug=f"gap-test-{status.lower()}", category="rod",
+        model_key=f"gap-{status.lower()}", variant_key=f"vk-gap-{status.lower()}", label="Gap Test Rod",
     )
     listing_id = seed_listing(
-        cur, retailer_id=retailer_id, retailer_sku="GAP-1", url="https://example.test/gap",
+        cur, retailer_id=retailer_id, retailer_sku=f"GAP-{status}", url=f"https://example.test/gap-{status}",
         title_raw="Gap", variant_label_raw="gap", attributes_raw={}, attributes_norm={},
-        gtin14=[], unit_count=None, variant_id=variant_id, variant_key_observed="vk-gap",
+        gtin14=[], unit_count=None, variant_id=variant_id, variant_key_observed=f"vk-gap-{status.lower()}",
     )
     seller_id = seed_seller(cur, retailer_id=retailer_id, seller_key="tackle_warehouse", seller_type="FIRST_PARTY")
-    offer_id = seed_offer(cur, listing_id=listing_id, seller_id=seller_id, offer_key="gap-offer", condition="NEW")
+    offer_id = seed_offer(cur, listing_id=listing_id, seller_id=seller_id, offer_key=f"gap-offer-{status}", condition="NEW")
     task_id = seed_crawl_task(
         cur, retailer_id=retailer_id, kind="DISCOVERY", page_type="CLEARANCE_LISTING",
-        url="https://example.test/gap-discovery", dedupe_key="DISCOVERY:gap",
+        url=f"https://example.test/gap-discovery-{status}", dedupe_key=f"DISCOVERY:gap:{status}",
     )
     obs_id = insert_observation(
         cur, offer_id=offer_id, crawl_task_id=task_id, task_kind="DISCOVERY",
@@ -296,16 +299,52 @@ def test_deal_cannot_be_active_without_confirming_observation_recorded(db):
         availability="IN_STOCK", quality="OK", reasons=[],
     )
     # No CONFIRM observation exists anywhere for this offer.
+    cur.execute("SAVEPOINT before_bad_insert")
+    with pytest.raises(Exception) as excinfo:
+        insert_deal(
+            cur, offer_id=offer_id, rule="DEEP_DISCOUNT_NEW", lane="VERIFIED", status=status,
+            detected_observation_id=obs_id, confirming_observation_id=None, detected_via="DISCOVERY_GRID",
+            price_cents=5000, reference_kind="OWN_HISTORY_MEDIAN_90D", reference_cents=13000, discount_pct=61.5,
+        )
+    assert "deals_confirmed_status_requires_observation" in str(excinfo.value)
+    cur.execute("ROLLBACK TO SAVEPOINT before_bad_insert")
+
+
+def test_rejected_status_without_confirming_observation_is_still_allowed(db):
+    """The constraint deliberately exempts REJECTED -- a candidate can be
+    rejected (e.g. confirm_deadline_missed, retailer_blocked) without ever
+    getting a CONFIRM observation. This must keep working."""
+    cur = db.cursor()
+    retailer_id = get_retailer_id(cur, "tackle_warehouse")
+    brand_id = seed_brand(cur, "RejectedGapBrand")
+    _, variant_id = seed_product_variant(
+        cur, brand_id=brand_id, slug="rejected-gap-test", category="rod",
+        model_key="rejected-gap-1", variant_key="vk-rejected-gap", label="Rejected Gap Test Rod",
+    )
+    listing_id = seed_listing(
+        cur, retailer_id=retailer_id, retailer_sku="REJ-GAP-1", url="https://example.test/rejected-gap",
+        title_raw="Rejected Gap", variant_label_raw="gap", attributes_raw={}, attributes_norm={},
+        gtin14=[], unit_count=None, variant_id=variant_id, variant_key_observed="vk-rejected-gap",
+    )
+    seller_id = seed_seller(cur, retailer_id=retailer_id, seller_key="tackle_warehouse", seller_type="FIRST_PARTY")
+    offer_id = seed_offer(cur, listing_id=listing_id, seller_id=seller_id, offer_key="rejected-gap-offer", condition="NEW")
+    task_id = seed_crawl_task(
+        cur, retailer_id=retailer_id, kind="DISCOVERY", page_type="CLEARANCE_LISTING",
+        url="https://example.test/rejected-gap-discovery", dedupe_key="DISCOVERY:rejected-gap",
+    )
+    obs_id = insert_observation(
+        cur, offer_id=offer_id, crawl_task_id=task_id, task_kind="DISCOVERY",
+        observed_at=datetime.now(timezone.utc), price_cents=5000, on_clearance=True,
+        availability="IN_STOCK", quality="OK", reasons=[],
+    )
     deal_id = insert_deal(
-        cur, offer_id=offer_id, rule="DEEP_DISCOUNT_NEW", lane="VERIFIED", status="ACTIVE",
+        cur, offer_id=offer_id, rule="DEEP_DISCOUNT_NEW", lane="VERIFIED", status="REJECTED",
         detected_observation_id=obs_id, confirming_observation_id=None, detected_via="DISCOVERY_GRID",
         price_cents=5000, reference_kind="OWN_HISTORY_MEDIAN_90D", reference_cents=13000, discount_pct=61.5,
+        reject_reason="confirm_deadline_missed",
     )
-    cur.execute("SELECT status, confirming_observation_id FROM deals WHERE id = %s", (deal_id,))
-    row = cur.fetchone()
-    # This SUCCEEDS today -- the DB has no constraint requiring a
-    # confirming_observation_id when status = 'ACTIVE'. See HANDOFF HIGH-3.
-    assert row == ("ACTIVE", None)
+    cur.execute("SELECT status, confirming_observation_id, reject_reason FROM deals WHERE id = %s", (deal_id,))
+    assert cur.fetchone() == ("REJECTED", None, "confirm_deadline_missed")
 
 
 def test_deals_one_open_per_offer_rule_uniqueness_enforced(db):

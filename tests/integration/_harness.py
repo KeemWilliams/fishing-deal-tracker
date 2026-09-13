@@ -195,38 +195,33 @@ def insert_observation(
     stock_qty_is_floor: bool = False,
     adapter_version: str = "test-harness-1",
     snapshot_ref: str = "test-harness",
+    currency: str | None = None,
 ) -> int:
+    """`currency` defaults to None so the column's own DB-side DEFAULT
+    ('USD', added in migration 014) is exercised unless a test explicitly
+    passes a value (e.g. to prove the format CHECK rejects 'usd')."""
+    columns = [
+        "offer_id", "crawl_task_id", "task_kind", "observed_at", "observed_date_et",
+        "price_cents", "claimed_reference_cents", "claimed_reference_kind",
+        "on_clearance", "availability", "stock_qty", "stock_qty_is_floor",
+        "unit_count", "variant_key_observed", "quality", "quality_reasons",
+        "adapter_version", "snapshot_ref",
+    ]
+    values = [
+        offer_id, crawl_task_id, task_kind, observed_at, observed_at.date(),
+        price_cents, claimed_reference_cents, claimed_reference_kind,
+        on_clearance, availability, stock_qty, stock_qty_is_floor,
+        unit_count, variant_key_observed, quality, reasons,
+        adapter_version, snapshot_ref,
+    ]
+    if currency is not None:
+        columns.append("currency")
+        values.append(currency)
+
+    placeholders = ", ".join(["%s"] * len(values))
     cur.execute(
-        """
-        INSERT INTO price_observations (
-            offer_id, crawl_task_id, task_kind, observed_at, observed_date_et,
-            price_cents, claimed_reference_cents, claimed_reference_kind,
-            on_clearance, availability, stock_qty, stock_qty_is_floor,
-            unit_count, variant_key_observed, quality, quality_reasons,
-            adapter_version, snapshot_ref
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        RETURNING id
-        """,
-        (
-            offer_id,
-            crawl_task_id,
-            task_kind,
-            observed_at,
-            observed_at.date(),
-            price_cents,
-            claimed_reference_cents,
-            claimed_reference_kind,
-            on_clearance,
-            availability,
-            stock_qty,
-            stock_qty_is_floor,
-            unit_count,
-            variant_key_observed,
-            quality,
-            reasons,
-            adapter_version,
-            snapshot_ref,
-        ),
+        f"INSERT INTO price_observations ({', '.join(columns)}) VALUES ({placeholders}) RETURNING id",
+        tuple(values),
     )
     return cur.fetchone()[0]
 

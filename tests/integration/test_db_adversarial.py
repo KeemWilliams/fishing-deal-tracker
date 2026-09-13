@@ -8,6 +8,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import pytest
+
 from fpt.adapters.base import Availability, Condition, FetchRequest, FetchResponse, PageType
 from fpt.adapters.jandh import JandhAdapter
 from fpt.adapters.tackle_warehouse import TackleWarehouseAdapter
@@ -247,3 +249,45 @@ def test_missing_gtin_bait_variant_inserts_with_empty_array_not_null(db):
     cur.execute("SELECT gtin14 FROM listings WHERE id = %s", (listing_id,))
     row = cur.fetchone()
     assert row[0] == []  # NOT NULL DEFAULT '{}' honored; never NULL for "no barcode found"
+
+
+# ---------------------------------------------------------------------------
+# 6. price_observations.currency (migration 014): defaults to 'USD' when
+#    omitted, and the format CHECK rejects anything not exactly [A-Z]{3} --
+#    including a correctly-valued-but-wrong-case 'usd'.
+# ---------------------------------------------------------------------------
+
+
+def test_price_observations_currency_defaults_to_usd(db):
+    cur = db.cursor()
+    retailer_id, offer_id = _seed_offer_stack(cur, retailer_slug="tackle_warehouse", sku="CURRENCY-DEFAULT-1")
+    task_id = seed_crawl_task(
+        cur, retailer_id=retailer_id, kind="DISCOVERY", page_type="CLEARANCE_LISTING",
+        url="https://example.test/currency-default", dedupe_key="DISCOVERY:currency-default",
+    )
+    obs_id = insert_observation(
+        cur, offer_id=offer_id, crawl_task_id=task_id, task_kind="DISCOVERY",
+        observed_at=datetime.now(timezone.utc), price_cents=6000, on_clearance=True,
+        availability="IN_STOCK", quality="OK", reasons=[],
+        # currency intentionally omitted -- must fall back to the column DEFAULT.
+    )
+    cur.execute("SELECT currency FROM price_observations WHERE id = %s", (obs_id,))
+    assert cur.fetchone()[0] == "USD"
+
+
+def test_price_observations_currency_rejects_lowercase_usd(db):
+    cur = db.cursor()
+    retailer_id, offer_id = _seed_offer_stack(cur, retailer_slug="tackle_warehouse", sku="CURRENCY-LOWER-1")
+    task_id = seed_crawl_task(
+        cur, retailer_id=retailer_id, kind="DISCOVERY", page_type="CLEARANCE_LISTING",
+        url="https://example.test/currency-lower", dedupe_key="DISCOVERY:currency-lower",
+    )
+    cur.execute("SAVEPOINT before_bad_currency")
+    with pytest.raises(Exception) as excinfo:
+        insert_observation(
+            cur, offer_id=offer_id, crawl_task_id=task_id, task_kind="DISCOVERY",
+            observed_at=datetime.now(timezone.utc), price_cents=6000, on_clearance=True,
+            availability="IN_STOCK", quality="OK", reasons=[], currency="usd",
+        )
+    assert "price_observations_currency_format" in str(excinfo.value)
+    cur.execute("ROLLBACK TO SAVEPOINT before_bad_currency")
