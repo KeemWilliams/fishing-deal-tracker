@@ -262,7 +262,7 @@ def drain_retailer_queue(
             ingest_outcome = ingest_parsed_listing(
                 conn, retailer_id=retailer_id, retailer_slug=retailer_slug, category=category,
                 listing=listing, response=response, adapter_version=adapter.adapter_version,
-                task_kind=kind,
+                task_kind=kind, crawl_task_id=task_id,
             )
             ingested.append(
                 {

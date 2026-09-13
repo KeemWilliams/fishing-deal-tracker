@@ -285,23 +285,30 @@ def test_two_tick_offline_enroll_to_active_deal(db, tw_only):
     tasks_after_tick1 = cur.fetchall()
     assert any(k == "DISCOVERY" and s == "DONE" for _, k, s, _, _ in tasks_after_tick1)
     enroll_tasks = [t for t in tasks_after_tick1 if t[1] == "ENROLL"]
-    # NOTE: fpt/store/pipeline.py (owned by a different coder as of this
-    # task) creates its OWN crawl_task row per ingested listing via
-    # get_or_create_crawl_task, keyed on a dedupe_key that includes
-    # snapshot_ref/retailer_sku -- a DIFFERENT scheme than the one this
-    # module's `_enqueue_enroll_task` uses (retailer_id + product_url).
-    # The two never match, so each real product-page fetch this test
-    # drives produces TWO ENROLL rows: the one this queue leased (DONE,
-    # no observations attributed to it) and a second one pipeline.py
-    # synthesizes for FK attribution (DONE, the one price_observations
-    # actually references). Both rows exist per URL fetched, hence >= 2
-    # rather than == 2 -- see HANDOFF for the cross-cutting fix
-    # recommendation (accept an existing crawl_task_id in
-    # ingest_parsed_listing instead of always creating a new one).
-    assert len(enroll_tasks) >= 2
+    # Follow-up fix (post-2570448): fpt/scheduler/queue.py now passes the
+    # already-leased crawl_task_id into ingest_parsed_listing, so
+    # fpt/store/pipeline.py attributes observations to the SAME row this
+    # queue leased instead of synthesizing a second crawl_tasks row via
+    # its own dedupe_key. One real ENROLL fetch now produces exactly ONE
+    # crawl_tasks row per (kind, url) -- verified by both the count and
+    # the per-URL grouping below.
+    assert len(enroll_tasks) == 2
     assert all(t[2] == "DONE" and t[3] == "OK" for t in enroll_tasks)  # every product-page fetch ran and succeeded
-    enrolled_urls = {t[4] for t in enroll_tasks}
-    assert enrolled_urls == {_PRODUCT_URL, _LOW_DISCOUNT_PRODUCT_URL}
+    enrolled_urls = [t[4] for t in enroll_tasks]
+    assert sorted(enrolled_urls) == sorted([_PRODUCT_URL, _LOW_DISCOUNT_PRODUCT_URL])
+    assert len(enrolled_urls) == len(set(enrolled_urls))  # exactly one ENROLL row per URL, no duplicates
+
+    # The observation itself must be attributed to the SAME crawl_task the
+    # queue leased (not a second, orphaned one) -- the concrete assertion
+    # behind "exactly one crawl_tasks row per (kind, url)".
+    deep_discount_enroll_task_id = next(t[0] for t in enroll_tasks if t[4] == _PRODUCT_URL)
+    cur.execute(
+        "SELECT crawl_task_id FROM price_observations po JOIN offers o ON o.id = po.offer_id "
+        "JOIN listings l ON l.id = o.listing_id WHERE l.retailer_id = %s AND l.retailer_sku = 'MBTSR706M' "
+        "AND po.task_kind = 'ENROLL'",
+        (retailer_id,),
+    )
+    assert cur.fetchone()[0] == deep_discount_enroll_task_id
 
     # The deep-discount offer got an observation and a CANDIDATE deal
     # (DEEP_DISCOUNT_NEW / VERIFIED -- $130 90-day own-history median vs
@@ -340,14 +347,15 @@ def test_two_tick_offline_enroll_to_active_deal(db, tw_only):
     cur.execute("SELECT count(*) FROM deals WHERE offer_id = %s", (low_offer_id,))
     assert cur.fetchone()[0] == 0
 
-    # A CONFIRM task should be queued, not yet due.
+    # A CONFIRM task should be queued, not yet due -- exactly one row.
     cur.execute(
-        "SELECT status, not_before FROM crawl_tasks WHERE retailer_id = %s AND kind = 'CONFIRM'", (retailer_id,),
+        "SELECT id, status, not_before FROM crawl_tasks WHERE retailer_id = %s AND kind = 'CONFIRM'", (retailer_id,),
     )
-    confirm_row = cur.fetchone()
-    assert confirm_row is not None
-    assert confirm_row[0] == "QUEUED"
-    assert confirm_row[1] > tick1_at
+    confirm_rows = cur.fetchall()
+    assert len(confirm_rows) == 1
+    confirm_task_id, confirm_status, confirm_not_before = confirm_rows[0]
+    assert confirm_status == "QUEUED"
+    assert confirm_not_before > tick1_at
 
     # --- Tick 2: clock advanced past the 10-minute confirmation gap
     # (architecture 6.4 C1) -- NEVER faked by shortening the gap itself,
@@ -374,7 +382,16 @@ def test_two_tick_offline_enroll_to_active_deal(db, tw_only):
     cur.execute(
         "SELECT status FROM crawl_tasks WHERE retailer_id = %s AND kind = 'CONFIRM'", (retailer_id,),
     )
-    assert cur.fetchone()[0] == "DONE"
+    confirm_status_rows = cur.fetchall()
+    assert len(confirm_status_rows) == 1  # still exactly one CONFIRM row -- tick 2 didn't create a second
+    assert confirm_status_rows[0][0] == "DONE"
+
+    # The confirming observation is attributed to the SAME crawl_task the
+    # queue leased for this CONFIRM fetch -- the concrete proof that
+    # ingest_parsed_listing used the passed-in crawl_task_id rather than
+    # synthesizing a second row.
+    cur.execute("SELECT crawl_task_id FROM price_observations WHERE id = %s", (confirming_obs_id,))
+    assert cur.fetchone()[0] == confirm_task_id
 
     # --- fpt export against this same DB: the ACTIVE deal must appear.
     from fpt.export.runner import run_export
