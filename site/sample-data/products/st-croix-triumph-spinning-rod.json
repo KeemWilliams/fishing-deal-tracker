@@ -3,6 +3,10 @@
   "name": "St. Croix Triumph Spinning Rod",
   "brand": "St. Croix",
   "category": "rod",
+  "images": [
+    "https://picsum.photos/seed/st-croix-triumph/800/600",
+    "https://picsum.photos/seed/st-croix-triumph-2/800/600"
+  ],
   "variants": [
     {
       "variant_pub_id": "vr_sample_001",

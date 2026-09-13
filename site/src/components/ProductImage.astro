@@ -1,0 +1,45 @@
+---
+// Fixed-aspect image box used everywhere a product photo appears. Renders an
+// <img> when a URL is available; otherwise renders an elegant placeholder
+// (never a broken-image icon) at the same dimensions, so the layout never
+// shifts either way. `eager` is only for the single largest above-the-fold
+// image on a page (the product hero); everything else lazy-loads.
+interface Props {
+  src?: string | null;
+  alt: string;
+  aspect?: 'card' | 'square';
+  eager?: boolean;
+  class?: string;
+}
+
+const { src, alt, aspect = 'card', eager = false, class: className = '' } = Astro.props;
+const aspectClass = aspect === 'square' ? 'aspect-square' : 'aspect-[4/3]';
+---
+
+<div class:list={['relative overflow-hidden bg-neutral-100 dark:bg-neutral-800', aspectClass, className]}>
+  {src ? (
+    <img
+      src={src}
+      alt={alt}
+      loading={eager ? 'eager' : 'lazy'}
+      decoding="async"
+      fetchpriority={eager ? 'high' : 'auto'}
+      width="800"
+      height={aspect === 'square' ? '800' : '600'}
+      class="h-full w-full object-cover"
+    />
+  ) : (
+    <div class="flex h-full w-full flex-col items-center justify-center gap-2 text-neutral-300 dark:text-neutral-600" role="img" aria-label={`No photo available for ${alt}`}>
+      <svg viewBox="0 0 64 64" width="40" height="40" fill="none" aria-hidden="true" focusable="false">
+        <path
+          d="M6 32c8-14 20-20 30-14 6 4 10 4 14 1M6 32c8 14 20 20 30 14 6-4 10-4 14-1"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+        ></path>
+        <circle cx="46" cy="24" r="2.5" fill="currentColor"></circle>
+      </svg>
+      <span class="text-[11px] font-medium uppercase tracking-wide">No photo yet</span>
+    </div>
+  )}
+</div>

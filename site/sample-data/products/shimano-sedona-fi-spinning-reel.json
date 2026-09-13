@@ -3,6 +3,7 @@
   "name": "Shimano Sedona FI Spinning Reel",
   "brand": "Shimano",
   "category": "reel",
+  "images": ["https://picsum.photos/seed/shimano-sedona/800/600"],
   "variants": [
     {
       "variant_pub_id": "vr_sample_004",

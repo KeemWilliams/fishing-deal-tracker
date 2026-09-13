@@ -3,6 +3,7 @@
   "name": "Abu Garcia Revo SX Baitcast Reel",
   "brand": "Abu Garcia",
   "category": "reel",
+  "images": ["https://picsum.photos/seed/abu-garcia-revo-sx/800/600"],
   "variants": [
     {
       "variant_pub_id": "vr_sample_002",

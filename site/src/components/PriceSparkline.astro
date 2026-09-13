@@ -1,0 +1,80 @@
+---
+// A small inline-SVG area sparkline for a variant's price history. No
+// charting library -- this is deliberately minimal (one polyline + one
+// filled area), computed entirely at build time from data already on the
+// Product payload. Decorative by default; the real numbers live in the
+// offers table and the history table below it, so the SVG carries an
+// aria-label summary rather than duplicating every data point for screen
+// readers.
+import type { ProductHistoryPoint } from '../lib/types';
+import { formatCents } from '../lib/format';
+
+interface Props {
+  history: ProductHistoryPoint[];
+}
+
+const { history } = Astro.props;
+
+const WIDTH = 320;
+const HEIGHT = 80;
+const PAD = 4;
+
+const points = [...history].sort((a, b) => a.date.localeCompare(b.date));
+const prices = points.map((p) => p.price_cents);
+const min = Math.min(...prices);
+const max = Math.max(...prices);
+const range = max - min || 1;
+
+function coords(): { x: number; y: number }[] {
+  if (points.length === 1) {
+    return [{ x: PAD, y: HEIGHT / 2 }];
+  }
+  return points.map((p, i) => {
+    const x = PAD + (i / (points.length - 1)) * (WIDTH - PAD * 2);
+    const y = PAD + (1 - (p.price_cents - min) / range) * (HEIGHT - PAD * 2);
+    return { x, y };
+  });
+}
+
+const coordList = coords();
+const linePath = coordList.map((c, i) => `${i === 0 ? 'M' : 'L'}${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(' ');
+const areaPath =
+  coordList.length > 0
+    ? `${linePath} L${coordList[coordList.length - 1].x.toFixed(1)},${HEIGHT - PAD} L${coordList[0].x.toFixed(1)},${HEIGHT - PAD} Z`
+    : '';
+
+const first = points[0];
+const last = points[points.length - 1];
+const trendLabel =
+  first && last && first !== last
+    ? `Price history from ${formatCents(first.price_cents)} to ${formatCents(last.price_cents)} over the tracked period.`
+    : 'Not enough price history to chart a trend yet.';
+
+const gradientId = `spark-fill-${Math.round(min)}-${Math.round(max)}-${points.length}`;
+
+// Hardcoded to match --color-accent-500 in global.css. SVG presentation
+// attributes (stop-color, stroke) don't reliably resolve var(...) across
+// browsers, so this can't just reference the CSS custom property directly.
+const ACCENT = '#ff6a3d';
+---
+
+{points.length >= 2 ? (
+  <svg
+    viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+    class="h-20 w-full max-w-xs"
+    role="img"
+    aria-label={trendLabel}
+    preserveAspectRatio="none"
+  >
+    <defs>
+      <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color={ACCENT} stop-opacity="0.28"></stop>
+        <stop offset="100%" stop-color={ACCENT} stop-opacity="0"></stop>
+      </linearGradient>
+    </defs>
+    <path d={areaPath} fill={`url(#${gradientId})`}></path>
+    <path d={linePath} fill="none" stroke={ACCENT} stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+  </svg>
+) : (
+  <p class="text-xs text-neutral-400 dark:text-neutral-500">{trendLabel}</p>
+)}

@@ -1,0 +1,50 @@
+---
+// The hero element of a deal: a large, confident "% off" figure in the
+// accent color, with the current price and struck-through reference price
+// beside it, and a small caption naming what the percentage is measured
+// against. Shared between DealCard (card size) and the product page (hero
+// size) so the two never drift apart.
+//
+// Deliberately restrained: one big number, one color reserved for it, no
+// coupon-site banner treatment (no diagonal ribbons, no red/yellow "SALE"
+// styling).
+import type { DealQualityTier } from '../lib/types';
+import { formatCents, formatPct } from '../lib/format';
+import DealTierBadge from './DealTierBadge.astro';
+
+interface Props {
+  pct: number;
+  currentCents: number;
+  referenceCents?: number | null;
+  caption?: string;
+  tier?: DealQualityTier | null;
+  size?: 'card' | 'hero';
+  shippedNote?: boolean;
+}
+
+const { pct, currentCents, referenceCents = null, caption = '', tier = null, size = 'card', shippedNote = false } = Astro.props;
+
+const pctSizeClass = size === 'hero' ? 'text-5xl sm:text-6xl' : 'text-4xl';
+const priceSizeClass = size === 'hero' ? 'text-2xl' : 'text-xl';
+---
+
+<div class="flex flex-col gap-1.5" data-testid="discount-price-block">
+  <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+    <p class:list={['font-semibold leading-none tracking-tight text-accent-600 tabular-nums dark:text-accent-500', pctSizeClass]}>
+      {formatPct(pct)} off
+    </p>
+    {tier && <DealTierBadge tier={tier} />}
+  </div>
+
+  <div class="flex flex-wrap items-baseline gap-2">
+    <p class:list={['font-bold leading-none tracking-tight text-neutral-900 tabular-nums dark:text-white', priceSizeClass]}>
+      {formatCents(currentCents)}
+    </p>
+    {referenceCents !== null && referenceCents > currentCents && (
+      <p class="text-sm text-neutral-400 line-through tabular-nums dark:text-neutral-500">{formatCents(referenceCents)}</p>
+    )}
+    {shippedNote && <span class="text-xs font-normal text-neutral-500 dark:text-neutral-400">shipped</span>}
+  </div>
+
+  {caption && <p class="text-xs text-neutral-500 dark:text-neutral-400">{caption}</p>}
+</div>

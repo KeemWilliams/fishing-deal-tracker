@@ -4,16 +4,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 <BaseLayout title="About our crawler" description="What we fetch, how often, and how to ask us to stop.">
   <div class="mx-auto max-w-2xl px-4 py-10 sm:px-6">
-    <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">About our crawler</h1>
+    <h1 class="text-2xl font-bold text-neutral-900 dark:text-white sm:text-3xl">About our crawler</h1>
 
-    <div class="mt-6 space-y-4 text-slate-700">
+    <div class="mt-6 space-y-4 text-neutral-700 dark:text-neutral-300">
       <p>
         We check publicly listed prices at a small set of fishing gear retailers using an automated
-        crawler that identifies itself as <code class="rounded bg-slate-100 px-1.5 py-0.5 text-sm">FishPriceBot</code>.
+        crawler that identifies itself as <code class="rounded bg-neutral-100 px-1.5 py-0.5 text-sm dark:bg-white/10">FishPriceBot</code>.
       </p>
       <p>
         We only fetch product pages and a small number of configured clearance/discovery pages — never
-        site search, and never anything <code class="rounded bg-slate-100 px-1.5 py-0.5 text-sm">robots.txt</code>
+        site search, and never anything <code class="rounded bg-neutral-100 px-1.5 py-0.5 text-sm dark:bg-white/10">robots.txt</code>
         disallows. We keep at most one request in flight per retailer at a time, with a delay of several
         seconds between requests, and daily limits per site.
       </p>

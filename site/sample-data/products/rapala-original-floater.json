@@ -3,6 +3,7 @@
   "name": "Rapala Original Floater",
   "brand": "Rapala",
   "category": "hard_bait",
+  "images": ["https://picsum.photos/seed/rapala-original-floater/800/600"],
   "variants": [
     {
       "variant_pub_id": "vr_sample_005",

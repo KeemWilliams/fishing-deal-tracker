@@ -1,4 +1,4 @@
-import type { Condition } from './types';
+import type { Condition, Deal, DealQualityTier, ProductVariant } from './types';
 
 export function formatCents(cents: number | null | undefined): string {
   if (cents === null || cents === undefined) return '—';
@@ -90,4 +90,85 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export function categoryLabel(category: string): string {
   return CATEGORY_LABELS[category] ?? category;
+}
+
+const TIER_LABELS: Record<DealQualityTier, string> = {
+  EXCEPTIONAL: 'Exceptional deal',
+  STRONG: 'Strong deal',
+  GOOD: 'Good deal',
+};
+
+export function dealTierLabel(tier: DealQualityTier): string {
+  return TIER_LABELS[tier] ?? tier;
+}
+
+/**
+ * Short caption for what a deal's discount percentage is measured against --
+ * shown as a small line under the big discount number so the number is never
+ * presented without its basis. Mirrors the "what we measure against" section
+ * on /how-we-verify/.
+ */
+export function discountReferenceCaption(deal: Deal): string {
+  if (deal.lane === 'VERIFIED' && deal.reference) {
+    switch (deal.reference.kind) {
+      case 'OWN_HISTORY_MEDIAN_90D':
+        return 'vs 90-day typical price';
+      case 'CROSS_RETAILER_NEW':
+        return 'vs lowest new price elsewhere';
+      case 'DATA_API_HISTORY':
+        return 'vs tracked price history';
+    }
+  }
+  if (deal.lane === 'CLAIMED' && deal.claimed_reference) {
+    const retailer = deal.retailer_name ?? deal.retailer_slug;
+    switch (deal.claimed_reference.kind) {
+      case 'MSRP':
+        return `vs ${retailer}'s MSRP`;
+      case 'WAS':
+        return `vs ${retailer}'s "was" price`;
+      case 'LIST':
+        return `vs ${retailer}'s list price`;
+    }
+  }
+  if (deal.lane === 'USED' && deal.reference) {
+    return 'vs current new price';
+  }
+  return '';
+}
+
+export interface VariantDiscount {
+  pct: number;
+  currentCents: number;
+  referenceCents: number;
+  caption: string;
+}
+
+/**
+ * Derives a "% off" figure for a product-page variant purely from data
+ * already on the Product payload -- no cross-reference to the deals feed
+ * needed. Reference price is the highest price_cents seen in the variant's
+ * 90-day history (its "typical" price before any markdown); current price is
+ * the lowest price among in-stock offers (falling back to the lowest offer
+ * overall if none are in stock). Returns null when there isn't enough
+ * history to say anything meaningful (fewer than 2 points, or the "current"
+ * price isn't actually lower than the reference).
+ */
+export function computeVariantDiscount(variant: ProductVariant): VariantDiscount | null {
+  if (variant.history.length < 2 || variant.offers.length === 0) return null;
+
+  const referenceCents = Math.max(...variant.history.map((point) => point.price_cents));
+
+  const inStockOffers = variant.offers.filter((offer) => offer.availability === 'IN_STOCK');
+  const candidateOffers = inStockOffers.length > 0 ? inStockOffers : variant.offers;
+  const currentCents = Math.min(...candidateOffers.map((offer) => offer.price_cents));
+
+  if (referenceCents <= 0 || currentCents >= referenceCents) return null;
+
+  const pct = ((referenceCents - currentCents) / referenceCents) * 100;
+  return {
+    pct,
+    currentCents,
+    referenceCents,
+    caption: 'vs 90-day high',
+  };
 }

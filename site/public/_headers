@@ -3,6 +3,14 @@
 # an Astro/Tailwind-built same-origin file under /_astro/), so the CSP below
 # has no 'unsafe-inline' anywhere.
 #
+# img-src allows https: broadly (plus data: for the rare inline placeholder)
+# because product photos come from whatever retailer hosted them -- the feed
+# is an external export with no fixed, enumerable set of image hosts (see
+# src/lib/safe-url.ts for why *links*, unlike images, ARE pinned to a
+# per-retailer allowlist: a link is a navigation target, an <img> src is not).
+# An <img> tag can't execute script or navigate the page, so this is a much
+# lower-risk surface than script-src/connect-src, which stay pinned to 'self'.
+#
 # connect-src allows https: broadly (not a single pinned host) because the
 # only client-side network call this site makes -- the stale-feed poll in
 # public/scripts/feed-status.js -- fetches PUBLIC_FEED_BASE_URL, which is a
@@ -15,6 +23,6 @@
 # handling -- avoids the trailing-slash mismatch where a headers rule only
 # matches one of `/foo` / `/foo/` and silently misses the other.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin

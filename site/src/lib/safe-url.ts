@@ -17,6 +17,18 @@ const RETAILER_ALLOWED_HOSTS: Readonly<Record<string, readonly string[]>> = {
   fishusa: ['fishusa.com', 'www.fishusa.com'],
   tackledirect: ['tackledirect.com', 'www.tackledirect.com'],
   alltackle: ['alltackle.com', 'www.alltackle.com'],
+  // Added 2026-09-13 for the redesign brief. basspro/cabelas/dicks have no
+  // adapter yet (see apps/fishing-price-tracker/config/retailers.yaml) --
+  // these entries only make safeRetailerUrl ready for them, they don't imply
+  // the scraper tracks them. fishingonline/discounttackle/rodlocker hosts
+  // mirror retailers.yaml's `allowed_hosts` for those three exactly (single
+  // canonical host each -- see that file's 2026-09-12 comment).
+  basspro: ['basspro.com', 'www.basspro.com'],
+  cabelas: ['cabelas.com', 'www.cabelas.com'],
+  dicks: ['dickssportinggoods.com', 'www.dickssportinggoods.com'],
+  fishingonline: ['www.fishingonline.com'],
+  discounttackle: ['discounttackle.com'],
+  rodlocker: ['rodlocker.com'],
 };
 
 /**

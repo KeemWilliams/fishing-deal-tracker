@@ -3,6 +3,7 @@
   "name": "Berkley PowerBait Power Worm",
   "brand": "Berkley",
   "category": "soft_bait",
+  "images": ["https://picsum.photos/seed/berkley-powerbait/800/600"],
   "variants": [
     {
       "variant_pub_id": "vr_sample_003",

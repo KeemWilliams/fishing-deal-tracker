@@ -13,8 +13,10 @@ const used = isUsedCondition(condition);
 
 <span
   class:list={[
-    'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
-    used ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700',
+    'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold',
+    used
+      ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-400'
+      : 'bg-neutral-100 text-neutral-700 dark:bg-white/10 dark:text-neutral-300',
   ]}
 >
   {label}

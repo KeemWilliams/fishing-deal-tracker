@@ -13,7 +13,7 @@ const feedBaseUrl = import.meta.env.PUBLIC_FEED_BASE_URL ?? '';
 ---
 
 {meta.is_sample_data && (
-  <div class="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-sm text-amber-800">
+  <div class="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
     Sample data for local development — these are not real deals.
   </div>
 )}
@@ -23,9 +23,11 @@ const feedBaseUrl = import.meta.env.PUBLIC_FEED_BASE_URL ?? '';
   role="status"
   data-generated-at={meta.generated_at}
   data-feed-base-url={feedBaseUrl}
-  class:list={['border-b px-4 py-2 text-center text-sm', stale ? 'border-red-200 bg-red-50 text-red-800' : 'hidden']}
+  class:list={[
+    'border-b px-4 py-2 text-center text-sm',
+    stale ? 'border-red-200 bg-red-50 text-red-800 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400' : 'hidden',
+  ]}
   hidden={!stale}
->
   <span id="feed-status-text">
     Our last successful check was {formatAbsoluteTime(meta.generated_at)}. Prices below may be out of date.
   </span>

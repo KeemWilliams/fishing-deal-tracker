@@ -35,7 +35,9 @@
       "availability": "IN_STOCK",
       "stock_qty": 2,
       "first_confirmed_at": "2026-09-11T12:31:02Z",
-      "last_confirmed_at": "2026-09-11T22:20:15Z"
+      "last_confirmed_at": "2026-09-11T22:20:15Z",
+      "image_url": "https://picsum.photos/seed/st-croix-triumph/800/600",
+      "deal_quality_tier": "STRONG"
     },
     {
       "deal_id": "dl_sample_002",
@@ -67,7 +69,9 @@
       "availability": "IN_STOCK",
       "stock_qty": null,
       "first_confirmed_at": "2026-09-10T09:05:00Z",
-      "last_confirmed_at": "2026-09-11T21:40:00Z"
+      "last_confirmed_at": "2026-09-11T21:40:00Z",
+      "image_url": "https://picsum.photos/seed/abu-garcia-revo-sx/800/600",
+      "deal_quality_tier": "STRONG"
     },
     {
       "deal_id": "dl_sample_003",
@@ -99,7 +103,9 @@
       "availability": "IN_STOCK",
       "stock_qty": 40,
       "first_confirmed_at": "2026-09-09T14:02:00Z",
-      "last_confirmed_at": "2026-09-11T20:10:00Z"
+      "last_confirmed_at": "2026-09-11T20:10:00Z",
+      "image_url": "https://picsum.photos/seed/berkley-powerbait/800/600",
+      "deal_quality_tier": "EXCEPTIONAL"
     },
     {
       "deal_id": "dl_sample_004",
@@ -130,7 +136,8 @@
       "availability": "IN_STOCK",
       "stock_qty": null,
       "first_confirmed_at": "2026-09-11T08:00:00Z",
-      "last_confirmed_at": "2026-09-11T19:30:00Z"
+      "last_confirmed_at": "2026-09-11T19:30:00Z",
+      "image_url": "https://picsum.photos/seed/shimano-sedona/800/600"
     },
     {
       "deal_id": "dl_sample_005",
@@ -161,7 +168,8 @@
       "availability": "IN_STOCK",
       "stock_qty": 15,
       "first_confirmed_at": "2026-09-08T10:00:00Z",
-      "last_confirmed_at": "2026-09-11T15:00:00Z"
+      "last_confirmed_at": "2026-09-11T15:00:00Z",
+      "image_url": "https://picsum.photos/seed/rapala-original-floater/800/600"
     },
     {
       "deal_id": "dl_sample_006",
@@ -193,7 +201,9 @@
       "availability": "IN_STOCK",
       "stock_qty": 1,
       "first_confirmed_at": "2026-09-11T18:00:00Z",
-      "last_confirmed_at": "2026-09-11T23:15:00Z"
+      "last_confirmed_at": "2026-09-11T23:15:00Z",
+      "image_url": "https://picsum.photos/seed/daiwa-bg/800/600",
+      "deal_quality_tier": "GOOD"
     },
     {
       "deal_id": "dl_sample_007",
@@ -225,7 +235,9 @@
       "availability": "IN_STOCK",
       "stock_qty": 1,
       "first_confirmed_at": "2026-09-10T18:00:00Z",
-      "last_confirmed_at": "2026-09-11T23:00:00Z"
+      "last_confirmed_at": "2026-09-11T23:00:00Z",
+      "image_url": "https://picsum.photos/seed/st-croix-triumph-used/800/600",
+      "deal_quality_tier": "STRONG"
     }
   ]
 }

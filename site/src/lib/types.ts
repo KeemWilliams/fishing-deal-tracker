@@ -28,6 +28,13 @@ export type Availability = 'IN_STOCK' | 'STORE_ONLY' | 'OUT_OF_STOCK';
 
 export type RetailerHealth = 'HEALTHY' | 'DEGRADED' | 'FAILED';
 
+/**
+ * Optional deal-quality tier. Not every deal in the feed carries one yet --
+ * treat `undefined`/`null` as "no tier assigned" and simply omit the badge,
+ * never default it to a guessed value.
+ */
+export type DealQualityTier = 'EXCEPTIONAL' | 'STRONG' | 'GOOD';
+
 export interface ReferenceDetail {
   kind: 'OWN_HISTORY_MEDIAN_90D' | 'CROSS_RETAILER_NEW' | 'DATA_API_HISTORY';
   cents: number;
@@ -67,6 +74,10 @@ export interface Deal {
   stock_qty: number | null;
   first_confirmed_at: string;
   last_confirmed_at: string;
+  /** Optional. Absolute https URL for the product photo. Falls back to a placeholder when absent. */
+  image_url?: string | null;
+  /** Optional. Not every deal has been scored yet -- omit the tier badge when absent. */
+  deal_quality_tier?: DealQualityTier | null;
 }
 
 export interface RetailerMeta {
@@ -114,6 +125,8 @@ export interface ProductOffer {
   availability: Availability;
   on_clearance: boolean;
   observed_at: string;
+  /** Optional. Absolute https URL for this offer's product photo. */
+  image_url?: string | null;
 }
 
 export interface ProductHistoryPoint {
@@ -136,6 +149,8 @@ export interface Product {
   name: string;
   brand: string;
   category: Category;
+  /** Optional. Gallery images, in display order. Falls back to a placeholder when absent/empty. */
+  images?: string[] | null;
   variants: ProductVariant[];
 }
 

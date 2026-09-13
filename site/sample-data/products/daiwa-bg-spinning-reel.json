@@ -3,6 +3,7 @@
   "name": "Daiwa BG Spinning Reel",
   "brand": "Daiwa",
   "category": "reel",
+  "images": ["https://picsum.photos/seed/daiwa-bg/800/600"],
   "variants": [
     {
       "variant_pub_id": "vr_sample_006",

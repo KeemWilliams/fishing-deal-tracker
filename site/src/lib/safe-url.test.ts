@@ -54,6 +54,12 @@ describe('safeRetailerUrl', () => {
       ['fishusa', 'https://www.fishusa.com/x'],
       ['tackledirect', 'https://www.tackledirect.com/x'],
       ['alltackle', 'https://alltackle.com/x'],
+      ['basspro', 'https://www.basspro.com/x'],
+      ['cabelas', 'https://www.cabelas.com/x'],
+      ['dicks', 'https://www.dickssportinggoods.com/x'],
+      ['fishingonline', 'https://www.fishingonline.com/x'],
+      ['discounttackle', 'https://discounttackle.com/x'],
+      ['rodlocker', 'https://rodlocker.com/x'],
     ];
     for (const [slug, url] of cases) {
       expect(safeRetailerUrl(url, slug)).toBe(url);

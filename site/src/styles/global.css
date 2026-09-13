@@ -1,14 +1,55 @@
 @import 'tailwindcss';
 
+/*
+ * Design tokens. System font stack only (no Google Fonts) -- the CSP has no
+ * font-src beyond 'self' and we don't want to loosen it just for typefaces;
+ * the platform system-ui stack already reads as "Apple-caliber" on every OS
+ * that matters (San Francisco on Apple devices, Segoe UI / Inter-ish on
+ * Windows). Dark mode rides Tailwind v4's default `dark:` variant, which
+ * follows `prefers-color-scheme` automatically -- no toggle needed for a
+ * single-user personal tracker.
+ */
 @theme {
-  --color-brand-50: #eff6ff;
-  --color-brand-600: #2563eb;
-  --color-brand-700: #1d4ed8;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji';
+
+  /* Accent is reserved for the discount figure and primary actions only. */
+  --color-accent-500: #ff6a3d;
+  --color-accent-600: #f0552a;
+  --color-accent-700: #d3431f;
+
   --color-deal-600: #16a34a;
   --color-deal-50: #f0fdf4;
+
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06);
+  --shadow-card-hover: 0 8px 24px -4px rgb(15 23 42 / 0.12), 0 2px 8px -2px rgb(15 23 42 / 0.08);
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  font-family: var(--font-sans);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-brand-600);
+  outline: 2px solid var(--color-accent-500);
   outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Respect reduced-motion for the hover lift/scale used on cards and buttons. */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
