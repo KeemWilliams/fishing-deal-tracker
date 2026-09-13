@@ -180,7 +180,9 @@ retailers:
     name: "Bass Pro Shops"
     base_url: "https://www.basspro.com"
     adapter_slug: basspro
-    enabled: true
+    # Disabled for the server crawl: datacenter IP is Akamai-blocked; needs the
+    # mobile-exit real-browser fetch path (not built yet). Re-enable then.
+    enabled: false
     allowed_hosts: [basspro.com, www.basspro.com]
     stealth_approved: false
     policy: *conservative_policy
@@ -203,7 +205,9 @@ retailers:
     name: "Cabela's"
     base_url: "https://www.cabelas.com"
     adapter_slug: cabelas
-    enabled: true
+    # Disabled for the server crawl (Akamai): needs the mobile-exit browser
+    # fetch path. Re-enable then.
+    enabled: false
     allowed_hosts: [cabelas.com, www.cabelas.com]
     stealth_approved: false
     policy: *conservative_policy
@@ -215,7 +219,9 @@ retailers:
     name: "Dick's Sporting Goods"
     base_url: "https://www.dickssportinggoods.com"
     adapter_slug: dicks
-    enabled: true
+    # Disabled for the server crawl (Akamai): needs the mobile-exit browser
+    # fetch path. Re-enable then.
+    enabled: false
     allowed_hosts: [dickssportinggoods.com, www.dickssportinggoods.com]
     stealth_approved: false
     policy: *conservative_policy
