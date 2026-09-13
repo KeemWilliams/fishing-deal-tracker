@@ -1,6 +1,7 @@
 ---
 import type { Deal } from '../lib/types';
 import { formatCents, formatPct, formatRelativeTime, categoryLabel } from '../lib/format';
+import { safeRetailerUrl } from '../lib/safe-url';
 import ConditionBadge from './ConditionBadge.astro';
 
 interface Props {
@@ -33,6 +34,7 @@ if (deal.lane === 'VERIFIED' && deal.reference) {
 const productHref = `/p/${deal.product_slug}/`;
 const priceToShow = deal.landed_price_cents ?? deal.price_cents;
 const showsLandedNote = deal.landed_price_cents !== null && deal.landed_price_cents !== deal.price_cents;
+const outboundUrl = safeRetailerUrl(deal.retailer_url, deal.retailer_slug);
 ---
 
 <article
@@ -88,14 +90,20 @@ const showsLandedNote = deal.landed_price_cents !== null && deal.landed_price_ce
     <span>{deal.retailer_name ?? deal.retailer_slug} · checked {formatRelativeTime(deal.last_confirmed_at)}</span>
   </div>
 
-  <a
-    href={deal.retailer_url}
-    target="_blank"
-    rel="noopener noreferrer"
-    class="inline-flex items-center justify-center rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700"
-    data-testid="deal-outbound-link"
-  >
-    View at {deal.retailer_name ?? deal.retailer_slug}
-    <span class="sr-only"> (opens in a new tab)</span>
-  </a>
+  {outboundUrl ? (
+    <a
+      href={outboundUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="inline-flex items-center justify-center rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700"
+      data-testid="deal-outbound-link"
+    >
+      View at {deal.retailer_name ?? deal.retailer_slug}
+      <span class="sr-only"> (opens in a new tab)</span>
+    </a>
+  ) : (
+    <p class="inline-flex items-center justify-center rounded-md bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-500" data-testid="deal-outbound-link-unavailable">
+      Link unavailable
+    </p>
+  )}
 </article>

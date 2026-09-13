@@ -4,6 +4,7 @@ import ConditionBadge from '../../components/ConditionBadge.astro';
 import WatchAlertPlaceholder from '../../components/WatchAlertPlaceholder.astro';
 import { loadDeals, loadAllSampleProducts, loadProduct } from '../../lib/feed';
 import { formatCents, formatAbsoluteTime, categoryLabel } from '../../lib/format';
+import { safeRetailerUrl } from '../../lib/safe-url';
 
 export async function getStaticPaths() {
   const base = import.meta.env.PUBLIC_FEED_BASE_URL;
@@ -49,32 +50,41 @@ const { product } = Astro.props;
 
         <h3 class="mt-4 text-sm font-semibold text-slate-600">Current offers</h3>
         <ul class="mt-2 divide-y divide-slate-100" data-testid="variant-offers">
-          {variant.offers.map((offer) => (
-            <li class="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="font-medium text-slate-800">{offer.retailer_name ?? offer.retailer_slug}</span>
-                <ConditionBadge condition={offer.condition} />
-                {offer.availability !== 'IN_STOCK' && (
-                  <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500">
-                    {offer.availability === 'STORE_ONLY' ? 'In store only' : 'Out of stock'}
-                  </span>
-                )}
-              </div>
-              <div class="flex items-center gap-3">
-                <span class="text-lg font-bold text-slate-900">{formatCents(offer.price_cents)}</span>
-                <a
-                  href={offer.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="text-sm font-semibold text-brand-700 hover:underline"
-                  data-testid="offer-outbound-link"
-                >
-                  View offer
-                  <span class="sr-only"> at {offer.retailer_name ?? offer.retailer_slug} (opens in a new tab)</span>
-                </a>
-              </div>
-            </li>
-          ))}
+          {variant.offers.map((offer) => {
+            const outboundUrl = safeRetailerUrl(offer.url, offer.retailer_slug);
+            return (
+              <li class="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="font-medium text-slate-800">{offer.retailer_name ?? offer.retailer_slug}</span>
+                  <ConditionBadge condition={offer.condition} />
+                  {offer.availability !== 'IN_STOCK' && (
+                    <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500">
+                      {offer.availability === 'STORE_ONLY' ? 'In store only' : 'Out of stock'}
+                    </span>
+                  )}
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="text-lg font-bold text-slate-900">{formatCents(offer.price_cents)}</span>
+                  {outboundUrl ? (
+                    <a
+                      href={outboundUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-sm font-semibold text-brand-700 hover:underline"
+                      data-testid="offer-outbound-link"
+                    >
+                      View offer
+                      <span class="sr-only"> at {offer.retailer_name ?? offer.retailer_slug} (opens in a new tab)</span>
+                    </a>
+                  ) : (
+                    <span class="text-sm font-medium text-slate-400" data-testid="offer-outbound-link-unavailable">
+                      Link unavailable
+                    </span>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
 
         <h3 class="mt-6 text-sm font-semibold text-slate-600">Price history (last 90 days)</h3>

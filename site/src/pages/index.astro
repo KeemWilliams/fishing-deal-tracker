@@ -16,7 +16,13 @@ const meta = await loadMeta();
 
 try {
   const feed = await loadDeals();
-  deals = feed.deals;
+  // CLAIMED-lane deals (a retailer's own claimed "MSRP"/"was" price, not a
+  // price we've observed elsewhere) are hidden for now -- we don't yet have
+  // enough of our own price history to sanity-check a retailer's claim, so
+  // showing them risks amplifying an inflated "was" price as if it were a
+  // real discount. The `Lane` type and CLAIMED rendering in DealCard stay in
+  // place so this can be re-enabled once we have that history.
+  deals = feed.deals.filter((deal) => deal.lane !== 'CLAIMED');
 } catch (err) {
   loadError = err instanceof Error ? err.message : 'Unknown error loading the deals feed.';
 }

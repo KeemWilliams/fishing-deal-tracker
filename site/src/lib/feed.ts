@@ -19,9 +19,29 @@ const SAMPLE_DIR = resolve(process.cwd(), 'sample-data');
 
 const SUPPORTED_SCHEMA_VERSION = 2;
 
+// Cloudflare Pages sets CF_PAGES during its build; astro build sets
+// NODE_ENV=production unless a caller has already set it explicitly (e.g.
+// `NODE_ENV=development astro build` for a local prod-mode smoke test keeps
+// the sample-data fallback). Either signal means "this is a real deploy, not
+// local dev" -- falling back to the bundled sample feed there would silently
+// ship fake deals instead of failing loudly on a misconfigured environment.
+function isProductionBuild(): boolean {
+  return Boolean(process.env.CF_PAGES) || process.env.NODE_ENV === 'production';
+}
+
 function feedBaseUrl(): string | undefined {
   const base = import.meta.env.PUBLIC_FEED_BASE_URL;
-  return base ? base.replace(/\/+$/, '') : undefined;
+  if (!base) {
+    if (isProductionBuild()) {
+      throw new Error(
+        'PUBLIC_FEED_BASE_URL is not set. Refusing to fall back to bundled sample data in a ' +
+          'production build (CF_PAGES or NODE_ENV=production) -- set PUBLIC_FEED_BASE_URL in the ' +
+          'deploy environment. Sample data is for local development only (NODE_ENV=development).'
+      );
+    }
+    return undefined;
+  }
+  return base.replace(/\/+$/, '');
 }
 
 async function fetchJson<T>(url: string): Promise<T> {
