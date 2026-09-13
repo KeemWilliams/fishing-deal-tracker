@@ -7,3 +7,7 @@ scrapling[fetchers]==0.4.11
 PyYAML==6.0.3
 requests==2.34.2
 psycopg[binary]==3.2.4
+
+# fpt/export/* (runner, storage, validate) -- S3/R2 upload + feed schema validation
+boto3==1.43.27
+jsonschema==4.26.0

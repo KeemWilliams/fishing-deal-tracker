@@ -1,0 +1,14 @@
+site/
+tests/
+tests_api/
+.scratch*
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+.env.*
+node_modules/
+.git/
+.gitignore
+.venv/
+venv/

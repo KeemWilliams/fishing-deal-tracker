@@ -1,3 +1,6 @@
 -r requirements.txt
 pytest==8.4.1
 pytest-cov==6.0.0
+
+# fpt/export tests mock S3/R2 -- moto[s3] pulls in the botocore-compatible mock server
+moto[s3]==5.0.28
