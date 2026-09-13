@@ -205,10 +205,11 @@ class TestQueriesAgainstRealSchema:
         assert seeded["used_pub_id"] in pub_ids
         # "only confirmed deals": a CANDIDATE deal must never appear.
         assert seeded["candidate_pub_id"] not in pub_ids
-        # M1: CLAIMED lane is hidden from the public feed entirely for now,
-        # even though it is ACTIVE and confirmed -- still stored, never
-        # exported.
-        assert seeded["claimed_pub_id"] not in pub_ids
+        # M1 REVERSED (2026-09-13, real-Neon incident: this filter hid all
+        # 25 real ACTIVE deals from the feed, since listing-ingest
+        # confirmations are almost always CLAIMED lane) -- a CLAIMED-lane
+        # ACTIVE/confirmed deal must now appear like any other lane.
+        assert seeded["claimed_pub_id"] in pub_ids
 
     def test_every_active_deal_row_has_a_condition(self, db):
         _seed_deal_scenario(db)
@@ -241,17 +242,26 @@ class TestBuildExportDocumentsAgainstRealSchema:
         assert seeded["verified_pub_id"] in deal_ids
         assert seeded["used_pub_id"] in deal_ids
         assert seeded["candidate_pub_id"] not in deal_ids
-        # M1: CLAIMED lane never leaves the export, even though it is
-        # ACTIVE/confirmed -- kept out of the public feed until VERIFIED.
-        assert seeded["claimed_pub_id"] not in deal_ids
+        # M1 REVERSED (see queries.py's `_ACTIVE_DEALS_SQL` comment and the
+        # matching assertion above): a CLAIMED-lane deal is now published.
+        assert seeded["claimed_pub_id"] in deal_ids
+
+        our_claimed = next(d for d in deals_feed["deals"] if d["deal_id"] == seeded["claimed_pub_id"])
+        assert our_claimed["lane"] == "CLAIMED"
+        # build_deal's existing (pre-fix, previously unexercised) contract:
+        # a CLAIMED-lane deal's `reference` stays null (no verified
+        # reference exists) and only `claimed_reference` is populated --
+        # this is also enforced by fpt/export/validate.py's schema check.
+        assert our_claimed["reference"] is None
+        assert our_claimed["claimed_reference"] is not None
+        assert our_claimed["claimed_reference"]["cents"] == 6999
 
         assert seeded["product_slug"] in products_json
         variant = products_json[seeded["product_slug"]]["variants"][0]
-        # 3 offers behind ACTIVE deals (including the CLAIMED one, which is
-        # still tracked/stored even though M1 hides its deal from the feed)
-        # + 1 behind the CANDIDATE-only deal -- the product page legitimately
-        # shows every currently-active offer for the variant, regardless of
-        # that offer's deal status.
+        # 3 offers behind ACTIVE deals (VERIFIED, CLAIMED, USED -- all now
+        # published) + 1 behind the CANDIDATE-only deal -- the product page
+        # legitimately shows every currently-active offer for the variant,
+        # regardless of that offer's deal status.
         assert len(variant["offers"]) == 4
         assert len(variant["history"]) >= 1
 
@@ -286,6 +296,67 @@ class TestRunExportEndToEnd:
         assert second.promoted is True
         meta = json.loads((tmp_path / "latest" / "meta.json").read_text())
         assert meta["export_id"] == second.export_id
+
+
+class TestStalenessGateReadsCrawlTasksNotOnlyFetchLog:
+    """Regression coverage for the real-Neon incident (2026-09-13): a
+    listing-ingest sweep succeeded <1h earlier and wrote 1413 observations,
+    yet `python run.py export` reported "all retailers stale (no
+    successful fetch in 12h)" for every retailer. Root cause: `fetch_log`
+    and `retailer_health_hourly` are never written by ANY fetch path in
+    this codebase (confirmed live against Neon: both tables permanently
+    empty) -- `_RETAILER_META_SQL`'s `last_successful_fetch_at` used to
+    read ONLY `fetch_log`. `fpt/store/observations.py::
+    get_or_create_crawl_task` DOES reliably write a `crawl_tasks` row
+    (`status='DONE', outcome='OK', finished_at=now()` by default) on every
+    real fetch, including the DISCOVERY task `fpt.scheduler.listing_ingest`
+    reuses -- `_RETAILER_META_SQL` now falls back to that."""
+
+    def test_recent_crawl_task_with_no_fetch_log_row_is_not_stale(self, db):
+        uid = _uid()
+        cur = db.cursor()
+        retailer_id = get_retailer_id(cur, "tackle_warehouse")
+        now = datetime.now(timezone.utc)
+
+        # Deliberately NO fetch_log/tick_runs row -- only a crawl_tasks row,
+        # exactly what a real listing-ingest DISCOVERY sweep produces.
+        cur.execute(
+            """
+            INSERT INTO crawl_tasks (retailer_id, kind, priority, page_type, url, dedupe_key, status, outcome, finished_at)
+            VALUES (%s, 'DISCOVERY', 30, 'CLEARANCE_LISTING', %s, %s, 'DONE', 'OK', %s)
+            """,
+            (retailer_id, f"https://www.tacklewarehouse.com/staleness-test/{uid}", f"staleness-test-{uid}", now),
+        )
+
+        rows = queries.fetch_retailer_rows(db)
+        row = next(r for r in rows if r["slug"] == "tackle_warehouse")
+        assert row["last_successful_fetch_at"] is not None
+        assert (now - row["last_successful_fetch_at"].replace(tzinfo=timezone.utc)).total_seconds() < 60
+
+        meta, _, _ = build_export_documents(db, generated_at=now)
+        retailer_meta = next(r for r in meta["retailers"] if r["slug"] == "tackle_warehouse")
+        assert retailer_meta["stale"] is False
+        assert retailer_meta["health"] != "DEGRADED" or retailer_meta.get("stale") is False
+
+    def test_only_a_failed_crawl_task_still_reads_as_stale(self, db):
+        """Guards the other direction: a FAILED/non-OK crawl_tasks row must
+        never be mistaken for a successful fetch."""
+        uid = _uid()
+        cur = db.cursor()
+        retailer_id = get_retailer_id(cur, "academy")
+        now = datetime.now(timezone.utc)
+
+        cur.execute(
+            """
+            INSERT INTO crawl_tasks (retailer_id, kind, priority, page_type, url, dedupe_key, status, outcome, finished_at)
+            VALUES (%s, 'DISCOVERY', 30, 'CLEARANCE_LISTING', %s, %s, 'DONE', 'BLOCKED', %s)
+            """,
+            (retailer_id, f"https://www.academy.com/staleness-test/{uid}", f"staleness-test-blocked-{uid}", now),
+        )
+
+        rows = queries.fetch_retailer_rows(db)
+        row = next(r for r in rows if r["slug"] == "academy")
+        assert row["last_successful_fetch_at"] is None
 
     def test_dry_run_writes_nothing(self, db, tmp_path):
         seeded = _seed_deal_scenario(db)

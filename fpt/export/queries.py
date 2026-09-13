@@ -27,8 +27,26 @@ SELECT
   r.name,
   r.enabled,
   r.breaker_open_until,
-  (SELECT max(fl.fetched_at) FROM fetch_log fl
-     WHERE fl.retailer_id = r.id AND fl.outcome = 'OK') AS last_successful_fetch_at,
+  -- BUG FIX (2026-09-13, real-Neon incident: a crawl succeeded <1h ago and
+  -- wrote 1413 observations, yet the export's staleness gate said "all
+  -- retailers stale (no successful fetch in 12h)" for every retailer,
+  -- always): `fetch_log` and `retailer_health_hourly` are never written
+  -- by ANY fetch path in this codebase (confirmed live: both tables have
+  -- zero rows) -- this is not specific to the listing-ingest confirmation
+  -- path added in fpt/scheduler/listing_ingest.py, it has never worked for
+  -- ANY retailer. `crawl_tasks` IS reliably written on every real fetch --
+  -- DISCOVERY, ENROLL, CONFIRM, and BASELINE all insert a row via
+  -- `fpt.store.observations.get_or_create_crawl_task`, which defaults to
+  -- `status='DONE', outcome='OK', finished_at=now()` -- so this now reads
+  -- that instead, with `fetch_log` kept as a COALESCE'd first choice in
+  -- case a future change starts populating it (never removes that seam,
+  -- just stops depending on it being the ONLY source of truth).
+  COALESCE(
+    (SELECT max(fl.fetched_at) FROM fetch_log fl
+       WHERE fl.retailer_id = r.id AND fl.outcome = 'OK'),
+    (SELECT max(ct.finished_at) FROM crawl_tasks ct
+       WHERE ct.retailer_id = r.id AND ct.status = 'DONE' AND ct.outcome = 'OK')
+  ) AS last_successful_fetch_at,
   (SELECT max(dp.last_swept_at) FROM discovery_pages dp
      WHERE dp.retailer_id = r.id) AS last_discovery_sweep_at,
   (SELECT COALESCE(sum(h.fetched), 0) FROM retailer_health_hourly h
@@ -51,11 +69,22 @@ _ACTIVE_OFFER_COUNT_SQL = "SELECT count(*) AS n FROM offers WHERE is_active;"
 # always carry a confirming observation, but the export never trusts status
 # alone for a fact this cheap to re-check at read time.
 #
-# M1: CLAIMED-lane deals are excluded from the public feed entirely for now
-# (owner's explicit default: hide a retailer's own unverified "was" claim
-# until our own cross-retailer/history evidence exists) -- they are still
-# fully stored and can later flip to VERIFIED on their own (architecture
-# 6.1's auto-upgrade path); this filter only affects what gets published.
+# M1 REVERSED (2026-09-13, explicit instruction: "CLAIMED-lane deals ...
+# must still appear in the feed"): this query used to add
+# `AND d.lane != 'CLAIMED'` here, hiding every retailer-claimed-reference
+# deal from the public feed. With the listing-ingest confirmation path
+# (fpt/scheduler/listing_ingest.py) now the primary source of ACTIVE
+# deals for the Shopify brand/collection retailers -- and those deals
+# reaching ACTIVE almost exclusively via CLAIMED lane, since a brand-new
+# offer has no own-history/cross-retailer VERIFIED reference yet -- that
+# filter suppressed the entire feed (0 ACTIVE deals published against 25
+# real ACTIVE deals in the DB, live-confirmed against Neon). CLAIMED-lane
+# deals are still confirmed against the SAME 50%+ discount threshold and
+# the same C1-C10 confirmation checks as any other lane; only their
+# REFERENCE is a retailer's own claim rather than independently verified
+# -- `claimed_inflated`/`claimed_reference` are already surfaced in the
+# published deal (fpt/export/build.py's `build_deal`) so the site can (and
+# should) label that distinction for the shopper, not hide the deal.
 #
 # L2: a USED/OPEN_BOX/REFURB deal is excluded whenever shipping is unknown
 # for its most recent observation -- an unknown-shipping used item's total
@@ -111,7 +140,6 @@ LEFT JOIN LATERAL (
 ) lo ON true
 WHERE d.status = 'ACTIVE'
   AND d.confirming_observation_id IS NOT NULL
-  AND d.lane != 'CLAIMED'
   AND (d.lane != 'USED' OR lo.shipping_cents IS NOT NULL)
 ORDER BY d.discount_pct DESC, d.detected_at DESC;
 """
