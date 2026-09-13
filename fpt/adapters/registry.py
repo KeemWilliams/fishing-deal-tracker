@@ -40,8 +40,11 @@ def _register_builtin_adapters() -> None:
     # adapter directly without loading every retailer's dependencies).
     from fpt.adapters.academy import AcademyAdapter
     from fpt.adapters.alltackle import AlltackleAdapter
+    from fpt.adapters.discounttackle import DiscountTackleAdapter
+    from fpt.adapters.fishingonline import FishingOnlineAdapter
     from fpt.adapters.fishusa import FishUSAAdapter
     from fpt.adapters.jandh import JandhAdapter
+    from fpt.adapters.rodlocker import RodLockerAdapter
     from fpt.adapters.tackle_warehouse import TackleWarehouseAdapter
     from fpt.adapters.tackledirect import TackleDirectAdapter
 
@@ -55,6 +58,14 @@ def _register_builtin_adapters() -> None:
     register(FishUSAAdapter())
     register(TackleDirectAdapter())
     register(AlltackleAdapter())
+    # Fishing Online, Discount Tackle, Rod Locker -- added in this task
+    # (2026-09-12), all Shopify storefronts read via
+    # fpt/adapters/_shopify_collection.py's shared public-JSON-endpoint
+    # adapter. See knowledge/research/fishing-additional-retailers-
+    # 2026-09-12.md for the retailer research this was built on.
+    register(FishingOnlineAdapter())
+    register(DiscountTackleAdapter())
+    register(RodLockerAdapter())
 
 
 _register_builtin_adapters()

@@ -14,7 +14,7 @@ db/
   README.md              -- this file
 ```
 
-Migrations are plain SQL, applied in filename order (`001_` ... `014_`, `013_` reserved for a
+Migrations are plain SQL, applied in filename order (`001_` ... `015_`, `013_` reserved for a
 retailer-seed migration landing in parallel from another coder). No migration framework
 is assumed yet; apply with `psql` directly:
 
@@ -50,6 +50,7 @@ fit that tool's convention with no content changes.
 | 012_seed_retailers | Seeds Tackle Warehouse, Academy Sports, J&H Tackle + their discovery pages |
 | 013_seed_more_retailers | Reserved: landing in parallel from another coder (not authored here) |
 | 014_deal_confirmation_and_currency | TEST-phase fix: `deals` CHECK requiring `confirming_observation_id` on confirmed statuses; adds `price_observations.currency` |
+| 015_seed_shopify_collection_retailers | Seeds Fishing Online, Discount Tackle, Rod Locker + their discovery pages (each retailer's own sale/clearance collection `products.json` endpoint) |
 
 Two tables have a column whose foreign key is added by a *later* migration rather than declared
 inline, because the two tables reference each other's future dependents in a cycle that can't be

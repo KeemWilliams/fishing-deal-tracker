@@ -1,0 +1,72 @@
+{
+  "products": [
+    {
+      "id": 1597454614583,
+      "title": "Berkley Trilene Big Game Monofilament Line Clear Quarter Pound Spools",
+      "handle": "berkley-trilene-big-game-monofilament-line-clear-quarter-pound-spools",
+      "vendor": "Berkley",
+      "tags": [
+        "auto:clearance",
+        "SummerMegaSale"
+      ],
+      "variants": [
+        {
+          "id": 14012675293239,
+          "title": "8 pound - 1700 yards",
+          "option1": "8 pound - 1700 yards",
+          "option2": null,
+          "option3": null,
+          "sku": "BGQS8C-15",
+          "available": true,
+          "price": "10.79",
+          "compare_at_price": "11.99"
+        },
+        {
+          "id": 14012675227703,
+          "title": "50 pound - 275 yards",
+          "option1": "50 pound - 275 yards",
+          "option2": null,
+          "option3": null,
+          "sku": "BGQS50C-15",
+          "available": true,
+          "price": "9.27",
+          "compare_at_price": "11.99"
+        }
+      ]
+    },
+    {
+      "id": 608093372471,
+      "title": "Yo-Zuri Ultra Bait Aurora Sinking Squid Jig 95mm - 3.75 Inch",
+      "handle": "yo-zuri-squid-jig-ultra-bait-aurora-sinking-3-3-4-inch-squid-jig",
+      "vendor": "Yo-Zuri",
+      "tags": [
+        "auto:clearance",
+        "LaborDay2023"
+      ],
+      "variants": [
+        {
+          "id": 43108421271640,
+          "title": "Luminous Blue / 3.75 inch",
+          "option1": "Luminous Blue",
+          "option2": "3.75 inch",
+          "option3": null,
+          "sku": "A1683 LB",
+          "available": true,
+          "price": "6.39",
+          "compare_at_price": "7.99"
+        },
+        {
+          "id": 43108421304408,
+          "title": "Luminous Green / 3.75 inch",
+          "option1": "Luminous Green",
+          "option2": "3.75 inch",
+          "option3": null,
+          "sku": "A1683 LM",
+          "available": false,
+          "price": "6.39",
+          "compare_at_price": "7.99"
+        }
+      ]
+    }
+  ]
+}

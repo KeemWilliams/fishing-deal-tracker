@@ -123,3 +123,46 @@ retailers:
     egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
     user_agent_profile: identified
     tracked_url_cap: 2500
+
+  # --- Added this task (2026-09-12): fishingonline, discounttackle, rodlocker ---
+  # All three are Shopify storefronts read via their own public JSON endpoints
+  # (fpt/adapters/_shopify_collection.py) rather than HTML scraping -- see
+  # knowledge/research/fishing-additional-retailers-2026-09-12.md. Each retailer's
+  # `allowed_hosts` matches the ONE canonical host its collection/product JSON
+  # endpoints were actually confirmed live on (fishingonline redirects bare-apex
+  # requests to `www.`; discounttackle and rodlocker do not).
+  - slug: fishingonline
+    name: "Fishing Online"
+    base_url: "https://www.fishingonline.com"
+    adapter_slug: fishingonline
+    enabled: true
+    allowed_hosts: [www.fishingonline.com]
+    stealth_approved: false
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
+
+  - slug: discounttackle
+    name: "Discount Tackle"
+    base_url: "https://discounttackle.com"
+    adapter_slug: discounttackle
+    enabled: true
+    allowed_hosts: [discounttackle.com]
+    stealth_approved: false
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
+
+  - slug: rodlocker
+    name: "Rod Locker"
+    base_url: "https://rodlocker.com"
+    adapter_slug: rodlocker
+    enabled: true
+    allowed_hosts: [rodlocker.com]
+    stealth_approved: false
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500

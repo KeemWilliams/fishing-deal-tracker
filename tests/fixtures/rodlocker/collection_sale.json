@@ -1,0 +1,70 @@
+{
+  "products": [
+    {
+      "id": 7488481951862,
+      "title": "Power Pro Braided Line",
+      "handle": "power-pro-braided-line",
+      "vendor": "Power Pro",
+      "tags": [
+        "auto:clearance"
+      ],
+      "variants": [
+        {
+          "id": 41673435775094,
+          "title": "Hi-Vis Yellow / 150 Yards / 40 lb.",
+          "option1": "Hi-Vis Yellow",
+          "option2": "150 Yards",
+          "option3": "40 lb.",
+          "sku": "21100400150Y",
+          "available": false,
+          "price": "9.25",
+          "compare_at_price": "18.50"
+        },
+        {
+          "id": 41673436135542,
+          "title": "Hi-Vis Yellow / 150 Yards / 65 lb.",
+          "option1": "Hi-Vis Yellow",
+          "option2": "150 Yards",
+          "option3": "65 lb.",
+          "sku": "21100650150Y",
+          "available": true,
+          "price": "11.25",
+          "compare_at_price": "22.50"
+        }
+      ]
+    },
+    {
+      "id": 7488484212918,
+      "title": "Power Pro Super 8 Slick V2 Braided Line",
+      "handle": "power-pro-super-8-slick-v2-braided-line",
+      "vendor": "Power Pro",
+      "tags": [
+        "auto:clearance"
+      ],
+      "variants": [
+        {
+          "id": 41678456651894,
+          "title": "Moss Green / 150 Yards / 20 lb.",
+          "option1": "Moss Green",
+          "option2": "150 Yards",
+          "option3": "20 lb.",
+          "sku": "31500200150C",
+          "available": false,
+          "price": "24.50",
+          "compare_at_price": "24.50"
+        },
+        {
+          "id": 41678456914038,
+          "title": "Moss Green / 150 Yards / 40 lb.",
+          "option1": "Moss Green",
+          "option2": "150 Yards",
+          "option3": "40 lb.",
+          "sku": "31500400150C",
+          "available": true,
+          "price": "24.50",
+          "compare_at_price": "24.50"
+        }
+      ]
+    }
+  ]
+}

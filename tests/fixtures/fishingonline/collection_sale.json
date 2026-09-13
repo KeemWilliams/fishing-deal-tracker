@@ -1,0 +1,286 @@
+{
+  "products": [
+    {
+      "id": 374706307105,
+      "title": "Owner Ultrahead Finesse Jigs",
+      "handle": "owner-ultrahead-finesse-jigs",
+      "vendor": "Owner",
+      "tags": [
+        "Hooks / Jigs",
+        "Jigheads",
+        "Sale",
+        "Terminal Tackle"
+      ],
+      "variants": [
+        {
+          "id": 4816334618657,
+          "title": "#1 - 1/32 oz",
+          "option1": "#1 - 1/32 oz",
+          "option2": null,
+          "option3": null,
+          "sku": "5149-901",
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": {
+            "id": 37581152256237,
+            "product_id": 374706307105,
+            "position": 2,
+            "created_at": "2022-07-27T22:15:56-04:00",
+            "updated_at": "2022-07-27T22:15:57-04:00",
+            "alt": "Owner Ultrahead Finesse Jigs",
+            "width": 1098,
+            "height": 964,
+            "src": "https://cdn.shopify.com/s/files/1/2538/7502/products/owner-ultrahead-finesse-jigs-5149.jpg?v=1658974557",
+            "variant_ids": [
+              4816334553121,
+              4816334585889,
+              4816334618657,
+              4816334651425,
+              4816334684193,
+              4816334716961,
+              29394835210263,
+              29394835505175,
+              29394836422679
+            ]
+          },
+          "available": true,
+          "price": "5.75",
+          "grams": 50,
+          "compare_at_price": "6.50",
+          "position": 1,
+          "product_id": 374706307105,
+          "created_at": "2017-11-14T20:43:58-05:00",
+          "updated_at": "2026-09-12T23:45:29-04:00"
+        },
+        {
+          "id": 4816334651425,
+          "title": "#1 - 1/16 oz",
+          "option1": "#1 - 1/16 oz",
+          "option2": null,
+          "option3": null,
+          "sku": "5149-011",
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": {
+            "id": 37581152256237,
+            "product_id": 374706307105,
+            "position": 2,
+            "created_at": "2022-07-27T22:15:56-04:00",
+            "updated_at": "2022-07-27T22:15:57-04:00",
+            "alt": "Owner Ultrahead Finesse Jigs",
+            "width": 1098,
+            "height": 964,
+            "src": "https://cdn.shopify.com/s/files/1/2538/7502/products/owner-ultrahead-finesse-jigs-5149.jpg?v=1658974557",
+            "variant_ids": [
+              4816334553121,
+              4816334585889,
+              4816334618657,
+              4816334651425,
+              4816334684193,
+              4816334716961,
+              29394835210263,
+              29394835505175,
+              29394836422679
+            ]
+          },
+          "available": false,
+          "price": "5.75",
+          "grams": 141,
+          "compare_at_price": "6.50",
+          "position": 2,
+          "product_id": 374706307105,
+          "created_at": "2017-11-14T20:43:59-05:00",
+          "updated_at": "2026-09-12T23:45:29-04:00"
+        },
+        {
+          "id": 4816334684193,
+          "title": "#1 - 1/8 oz",
+          "option1": "#1 - 1/8 oz",
+          "option2": null,
+          "option3": null,
+          "sku": "5149-021",
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": {
+            "id": 37581152256237,
+            "product_id": 374706307105,
+            "position": 2,
+            "created_at": "2022-07-27T22:15:56-04:00",
+            "updated_at": "2022-07-27T22:15:57-04:00",
+            "alt": "Owner Ultrahead Finesse Jigs",
+            "width": 1098,
+            "height": 964,
+            "src": "https://cdn.shopify.com/s/files/1/2538/7502/products/owner-ultrahead-finesse-jigs-5149.jpg?v=1658974557",
+            "variant_ids": [
+              4816334553121,
+              4816334585889,
+              4816334618657,
+              4816334651425,
+              4816334684193,
+              4816334716961,
+              29394835210263,
+              29394835505175,
+              29394836422679
+            ]
+          },
+          "available": false,
+          "price": "5.75",
+          "grams": 141,
+          "compare_at_price": "6.50",
+          "position": 3,
+          "product_id": 374706307105,
+          "created_at": "2017-11-14T20:43:59-05:00",
+          "updated_at": "2026-09-12T23:45:29-04:00"
+        }
+      ]
+    },
+    {
+      "id": 374706503713,
+      "title": "412 Bait Company Free Worm",
+      "handle": "412-bait-company-free-worm",
+      "vendor": "412 Bait Co.",
+      "tags": [
+        "Baits",
+        "Clearance",
+        "Sale",
+        "Soft Plastics"
+      ],
+      "variants": [
+        {
+          "id": 4816336945185,
+          "title": "4.5\" / SOTY SF",
+          "option1": "4.5\"",
+          "option2": "SOTY SF",
+          "option3": null,
+          "sku": "FWorm45-SOTY",
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": {
+            "id": 1284820631585,
+            "product_id": 374706503713,
+            "position": 13,
+            "created_at": "2017-11-14T20:44:16-05:00",
+            "updated_at": "2019-10-31T15:38:44-04:00",
+            "alt": "412 Bait Company Free Worm [4.5\" SOTY SF]",
+            "width": 3872,
+            "height": 3440,
+            "src": "https://cdn.shopify.com/s/files/1/2538/7502/products/412-bait-company-free-worm-4_5-soty-sf.jpg?v=1572550724",
+            "variant_ids": [
+              4816336945185,
+              4816336977953,
+              4816337010721,
+              4816337043489
+            ]
+          },
+          "available": true,
+          "price": "4.49",
+          "grams": 91,
+          "compare_at_price": "5.98",
+          "position": 1,
+          "product_id": 374706503713,
+          "created_at": "2017-11-14T20:44:21-05:00",
+          "updated_at": "2026-09-12T23:45:29-04:00"
+        },
+        {
+          "id": 4816335634465,
+          "title": "4.5\" / Baby Bass SF",
+          "option1": "4.5\"",
+          "option2": "Baby Bass SF",
+          "option3": null,
+          "sku": "FWorm45-BB",
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": {
+            "id": 1284820303905,
+            "product_id": 374706503713,
+            "position": 3,
+            "created_at": "2017-11-14T20:44:16-05:00",
+            "updated_at": "2019-10-31T15:38:44-04:00",
+            "alt": "412 Bait Company Free Worm [4.5\" Baby Bass SF]",
+            "width": 4422,
+            "height": 3180,
+            "src": "https://cdn.shopify.com/s/files/1/2538/7502/products/412-bait-company-free-worm-4_5-baby-bass-sf.jpg?v=1572550724",
+            "variant_ids": [
+              4816335634465,
+              4816336289825
+            ]
+          },
+          "available": false,
+          "price": "4.49",
+          "grams": 91,
+          "compare_at_price": "5.98",
+          "position": 3,
+          "product_id": 374706503713,
+          "created_at": "2017-11-14T20:44:19-05:00",
+          "updated_at": "2026-09-12T23:45:29-04:00"
+        },
+        {
+          "id": 4816336289825,
+          "title": "6\" / Baby Bass SF",
+          "option1": "6\"",
+          "option2": "Baby Bass SF",
+          "option3": null,
+          "sku": "FWorm6-BB",
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": {
+            "id": 1284820303905,
+            "product_id": 374706503713,
+            "position": 3,
+            "created_at": "2017-11-14T20:44:16-05:00",
+            "updated_at": "2019-10-31T15:38:44-04:00",
+            "alt": "412 Bait Company Free Worm [4.5\" Baby Bass SF]",
+            "width": 4422,
+            "height": 3180,
+            "src": "https://cdn.shopify.com/s/files/1/2538/7502/products/412-bait-company-free-worm-4_5-baby-bass-sf.jpg?v=1572550724",
+            "variant_ids": [
+              4816335634465,
+              4816336289825
+            ]
+          },
+          "available": true,
+          "price": "4.86",
+          "grams": 91,
+          "compare_at_price": "6.48",
+          "position": 20,
+          "product_id": 374706503713,
+          "created_at": "2017-11-14T20:44:20-05:00",
+          "updated_at": "2026-09-12T23:45:29-04:00"
+        },
+        {
+          "id": 4816336355361,
+          "title": "6\" / Cold Steel SF",
+          "option1": "6\"",
+          "option2": "Cold Steel SF",
+          "option3": null,
+          "sku": "FWorm6-CS",
+          "requires_shipping": true,
+          "taxable": true,
+          "featured_image": {
+            "id": 1284820369441,
+            "product_id": 374706503713,
+            "position": 5,
+            "created_at": "2017-11-14T20:44:16-05:00",
+            "updated_at": "2019-10-31T15:38:44-04:00",
+            "alt": "412 Bait Company Free Worm [4.5\" Cold Steel SF]",
+            "width": 1280,
+            "height": 939,
+            "src": "https://cdn.shopify.com/s/files/1/2538/7502/products/412-bait-company-free-worm-4_5-cold-steel-sf.jpg?v=1572550724",
+            "variant_ids": [
+              4816335700001,
+              4816336355361
+            ]
+          },
+          "available": true,
+          "price": "4.86",
+          "grams": 91,
+          "compare_at_price": "6.48",
+          "position": 21,
+          "product_id": 374706503713,
+          "created_at": "2017-11-14T20:44:20-05:00",
+          "updated_at": "2026-09-12T23:45:29-04:00"
+        }
+      ]
+    }
+  ]
+}
