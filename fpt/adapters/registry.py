@@ -41,6 +41,8 @@ def _register_builtin_adapters() -> None:
     from fpt.adapters.academy import AcademyAdapter
     from fpt.adapters.alltackle import AlltackleAdapter
     from fpt.adapters.basspro import BassProAdapter
+    from fpt.adapters.cabelas import CabelasAdapter
+    from fpt.adapters.dicks import DicksAdapter
     from fpt.adapters.discounttackle import DiscountTackleAdapter
     from fpt.adapters.fishingonline import FishingOnlineAdapter
     from fpt.adapters.fishusa import FishUSAAdapter
@@ -72,6 +74,15 @@ def _register_builtin_adapters() -> None:
     # retailer is a separate, out-of-scope concern (see
     # fpt/adapters/basspro.py module docstring).
     register(BassProAdapter())
+    # Cabela's -- added in this task (2026-09-13). Same Coveo search-JSON
+    # backend/org as Bass Pro Shops; parses via the shared
+    # fpt/adapters/_coveo.py helper. Dick's Sporting Goods -- added in this
+    # task, a different `prod-catalog-product-api` v2/search JSON shape
+    # with its own MAP-restriction handling (see fpt/adapters/dicks.py
+    # module docstring). Both are parser-only, same fetch-mechanism scope
+    # boundary as Bass Pro.
+    register(CabelasAdapter())
+    register(DicksAdapter())
 
 
 _register_builtin_adapters()

@@ -56,13 +56,13 @@ uncertainty.
 
 from __future__ import annotations
 
-import json
-from typing import Any, Sequence
+from typing import Sequence
 
-from fpt.adapters._shared import is_blocked, load_allowed_hosts, sanitize_offer_url
+from fpt.adapters._coveo import RESULTS_SENTINELS as _RESULTS_SENTINELS
+from fpt.adapters._coveo import parse_coveo_search_json as _parse_coveo_search_json
+from fpt.adapters._shared import is_blocked, load_allowed_hosts
 from fpt.core.models import (
     AdapterCapabilities,
-    ClaimedReferenceKind,
     CrawlTask,
     DiscoveredItem,
     FetchRequest,
@@ -82,25 +82,6 @@ BASE_URL = "https://www.basspro.com"
 # jandh.py's module-level load).
 ALLOWED_HOSTS = load_allowed_hosts(SELLER_KEY)
 
-# Coveo's search-response envelope. Deliberately a byte-substring check
-# (matching the rest of this package's `is_blocked`/`content_sentinels`
-# convention) rather than a speculative json.loads -- a truncated or
-# block-page body should hit `is_blocked`/EMPTY/STRUCTURE_CHANGED via the
-# normal parse path, not raise here.
-_RESULTS_SENTINELS: tuple[bytes, ...] = (b'"results":[', b'"results": [')
-
-
-def _dollars_to_cents(value: Any) -> int | None:
-    """Coveo prices are USD dollar amounts (float or int), e.g. 49.99 or 50.
-    Never guesses -- a missing/non-numeric/non-positive value is None, per
-    the adapter contract ("a missing price is None, not 0")."""
-    if isinstance(value, bool):  # bool is an int subclass; exclude explicitly
-        return None
-    if not isinstance(value, (int, float)):
-        return None
-    cents = round(value * 100)
-    return cents if cents > 0 else None
-
 
 def parse_coveo_search_json(
     body: bytes,
@@ -108,85 +89,23 @@ def parse_coveo_search_json(
     category_hint: str,
     allowed_hosts: frozenset[str],
 ) -> list[DiscoveredItem] | None:
-    """Parse a Coveo `/rest/search/v2` response body into discovery rows.
+    """Thin wrapper over `fpt.adapters._coveo.parse_coveo_search_json` bound
+    to Bass Pro's own `base_url`/`/p/` product path.
 
-    Returns None when the body cannot be interpreted as this endpoint's
-    JSON shape at all (caller maps that to STRUCTURE_CHANGED); returns an
-    empty list for a validly-shaped but empty result set (a legitimate "no
-    matches" response, mapped to outcome OK with zero discovered items --
-    matching `_shopify_collection.parse_collection_products_json`'s
-    empty-vs-unparseable distinction).
+    Extracted into the shared `_coveo` module while adding the Cabela's
+    adapter (2026-09-13), which runs the identical Coveo backend/org (see
+    `_coveo.py`'s module docstring). This wrapper keeps the module-level
+    function name and signature `test_adapter_basspro.py` was already
+    written against, so that suite required zero changes -- refactoring the
+    shared logic out carried no risk to Bass Pro's existing coverage.
     """
-    try:
-        payload = json.loads(body)
-    except (ValueError, UnicodeDecodeError):
-        return None
-    if not isinstance(payload, dict):
-        return None
-    results = payload.get("results")
-    if not isinstance(results, list):
-        return None
-
-    discovered: list[DiscoveredItem] = []
-    for result in results:
-        if not isinstance(result, dict):
-            continue
-        raw = result.get("raw")
-        if not isinstance(raw, dict):
-            continue
-
-        url_keyword = raw.get("producturlkeyword")
-        if not isinstance(url_keyword, str) or not url_keyword:
-            continue
-
-        price_cents = _dollars_to_cents(raw.get("offerprice"))
-        if price_cents is None:
-            continue
-        list_cents = _dollars_to_cents(raw.get("listprice"))
-
-        # Never treat offerprice == listprice as a discount, even when both
-        # are present -- only a strictly higher listprice is a real "was"
-        # claim (matches _shopify_collection.py's compare_at_price > price
-        # guard and jandh.py's "never fabricate a discount" rule).
-        claimed_cents = list_cents if list_cents is not None and list_cents > price_cents else None
-        claimed_kind = ClaimedReferenceKind.LIST if claimed_cents is not None else None
-
-        min_offer = _dollars_to_cents(raw.get("minofferprice"))
-        max_offer = _dollars_to_cents(raw.get("maxofferprice"))
-        # price_is_range: the grid/search-row price is a product-level
-        # figure, not confirmed per-variant, whenever this product's
-        # variants (childcount) don't all share one offer price -- same
-        # "grid shows one price, real per-variant prices are confirmed on
-        # the product page" convention as academy.py/_shopify_collection.py.
-        price_is_range = min_offer is not None and max_offer is not None and min_offer != max_offer
-
-        # Bass Pro product pages live under the site's /p/ path (per task
-        # brief; not independently re-verified against a live product page
-        # this session -- see HANDOFF uncertainty HIGH). Built from our own
-        # domain literal, but the URL keyword is still untrusted page
-        # content -- route through the same sanitizing guard rather than
-        # assuming string interpolation alone is safe (H1), matching
-        # jandh.py/_shopify_collection.py.
-        candidate_url = f"{BASE_URL}/p/{url_keyword}"
-        url = sanitize_offer_url(candidate_url, allowed_hosts=allowed_hosts)
-        if not url:
-            continue
-
-        sku = raw.get("sku")
-        discovered.append(
-            DiscoveredItem(
-                product_url=url,
-                retailer_product_code=str(sku) if sku is not None else None,
-                title_raw=str(raw.get("title") or ""),
-                price_cents=price_cents,
-                price_is_range=price_is_range,
-                claimed_reference_cents=claimed_cents,
-                claimed_reference_kind=claimed_kind,
-                condition_hint=None,
-                category_hint=category_hint,
-            )
-        )
-    return discovered
+    return _parse_coveo_search_json(
+        body,
+        category_hint=category_hint,
+        allowed_hosts=allowed_hosts,
+        base_url=BASE_URL,
+        product_path_prefix="/p/",
+    )
 
 
 class BassProAdapter:

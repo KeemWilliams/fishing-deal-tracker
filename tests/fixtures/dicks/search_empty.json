@@ -1,0 +1,22 @@
+{
+  "totalCount": 0,
+  "searchVO": {
+    "selectedCategory": "12301_10598220",
+    "selectedStore": "1580",
+    "selectedSort": 5,
+    "selectedFilters": {},
+    "storeId": 15108,
+    "pageNumber": 0,
+    "pageSize": 48,
+    "totalCount": 27299,
+    "searchTypes": [
+      "SKU_COLLECTION",
+      "RISA",
+      "BOOST",
+      "PINNING",
+      "COLOR_PINNING"
+    ],
+    "isFamilyPage": true
+  },
+  "productVOs": []
+}

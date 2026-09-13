@@ -1,0 +1,265 @@
+{
+  "totalCount": 3,
+  "searchVO": {
+    "selectedCategory": "12301_10598220",
+    "selectedStore": "1580",
+    "selectedSort": 5,
+    "selectedFilters": {},
+    "storeId": 15108,
+    "pageNumber": 0,
+    "pageSize": 48,
+    "totalCount": 27299,
+    "searchTypes": [
+      "SKU_COLLECTION",
+      "RISA",
+      "BOOST",
+      "PINNING",
+      "COLOR_PINNING"
+    ],
+    "isFamilyPage": true
+  },
+  "productVOs": [
+    {
+      "catentryId": 13358902,
+      "partnumber": "26802117",
+      "parentCatentryId": "12807716",
+      "parentPartnumber": "25FHQWRH8WHTWHTXXFTW",
+      "swatchPartnumber": "25FHQWRH8WHTWHTXXFTW_White/White",
+      "name": "HOKA Women's Arahi 8 Running Shoes",
+      "mfName": "Hoka",
+      "badge": "Extended Sizes",
+      "thumbnail": "25FHQWRH8WHTWHTXXFTW",
+      "fullImage": "25FHQWRH8WHTWHTXXFTW",
+      "assetSeoUrl": "/p/hoka-womens-arahi-8-running-shoes-25fhqwrh8whtwhtxxftw/25fhqwrh8whtwhtxxftw",
+      "dsgSeoUrl": "/p/hoka-womens-arahi-8-running-shoes-25fhqwrh8whtwhtxxftw/25fhqwrh8whtwhtxxftw",
+      "dsgProductSortDate": "06/10/2025",
+      "attributes": "[{\"X_BRAND\":\"Hoka\"},{\"PRIMARY_CATEGORY_DSG \":\"WomensRunning-129913\"},{\"5495\":\"Women's\"},{\"5382\":\"Athletic & Sneakers\"},{\"4285\":\"Running\"},{\"X_BazaarVoice_ratings_DSG\":4.7942},{\"X_BazaarVoice_ratings_ovr_DSG\":4.7942},{\"X_BazaarVoice_count_DSG\":311},{\"X_BazaarVoice_count_ovr_DSG\":311},{\"X_BazaarVoice_q_count_DSG\":4},{\"5471\":\"Medium\"},{\"X_BazaarVoice_a_count_DSG\":1},{\"2101\":\"Women's\"},{\"2483\":\"Stability\"},{\"5066\":\"Road\"},{\"5081\":\"8-9.9oz\"},{\"5222\":\"Moderate Cushioning & Flexibility\"},{\"2179\":\"Low\"},{\"3695\":\"Imported\"},{\"5733\":\"No\"},{\"5588\":\"Rubber Construction\"},{\"5940\":\"Laces\"},{\"4861\":\"Low\"},{\"5519\":\"TRUE\"},{\"5513\":\"True\"},{\"5520\":\"1\"},{\"5523\":\"pl-mothers-day\"},{\"5525\":\"New\"},{\"5529\":\"06/10/2025\"},{\"4187\":\"Sneakers\"},{\"6021\":\"Brand Excluded\"},{\"4482\":\"Y\"},{\"3961\":\"True\"},{\"4298\":\"Extended Sizes\"},{\"4474\":\"06/10/2025\"},{\"4723\":\"Y\"},{\"4875\":\"Gifts for the Runner\"},{\"4875\":\"Warm and Cozy\"},{\"4875\":\"Footwear Gifts\"},{\"4875\":\"Footwear Grad\"},{\"4875\":\"total-athletic-footwear-new-arrivals\"},{\"4875\":\"Easter Gifts for Her\"},{\"4875\":\"Grad Gifts for Her\"},{\"4875\":\"Event Footwear\"},{\"5426\":\"Cushioned midsole | Rearfoot-focused Active Foot Frame\u2122 | Best for: Road running, Daily training\"}]",
+      "floatFacets": [
+        {
+          "identifier": "dickssportinggoodsmapprice",
+          "stringValue": "119.95",
+          "startDateTime": 1787187842000,
+          "maxQty": 99.0,
+          "endDateTime": 3301952641999,
+          "value": 119.95,
+          "partnumber": "25FHQWRH8WHTWHTXXFTW",
+          "minQty": 1.0,
+          "startDate": "2026-08-20T01:04:02.000UTC",
+          "endDate": "2074-08-20T01:04:01.999UTC"
+        },
+        {
+          "identifier": "dickssportinggoodslistprice",
+          "stringValue": "149.99",
+          "startDateTime": 1787187842000,
+          "maxQty": 99.0,
+          "endDateTime": 3301952641999,
+          "value": 149.99,
+          "partnumber": "25FHQWRH8WHTWHTXXFTW",
+          "minQty": 1.0,
+          "startDate": "2026-08-20T01:04:02.000UTC",
+          "endDate": "2074-08-20T01:04:01.999UTC"
+        },
+        {
+          "identifier": "dickssportinggoodsofferprice",
+          "stringValue": "119.99",
+          "startDateTime": 1787187842000,
+          "maxQty": 99.0,
+          "endDateTime": 3301952641999,
+          "value": 119.99,
+          "partnumber": "25FHQWRH8WHTWHTXXFTW",
+          "minQty": 1.0,
+          "startDate": "2026-08-20T01:04:02.000UTC",
+          "endDate": "2074-08-20T01:04:01.999UTC"
+        },
+        {
+          "identifier": "publiclandsmapprice",
+          "stringValue": "119.95",
+          "startDateTime": 1787187767000,
+          "maxQty": 99.0,
+          "endDateTime": 3301952566999,
+          "value": 119.95,
+          "partnumber": "25FHQWRH8WHTWHTXXFTW",
+          "minQty": 1.0,
+          "startDate": "2026-08-20T01:02:47.000UTC",
+          "endDate": "2074-08-20T01:02:46.999UTC"
+        },
+        {
+          "identifier": "publiclandslistprice",
+          "stringValue": "149.99",
+          "startDateTime": 1787187767000,
+          "maxQty": 99.0,
+          "endDateTime": 3301952566999,
+          "value": 149.99,
+          "partnumber": "25FHQWRH8WHTWHTXXFTW",
+          "minQty": 1.0,
+          "startDate": "2026-08-20T01:02:47.000UTC",
+          "endDate": "2074-08-20T01:02:46.999UTC"
+        },
+        {
+          "identifier": "publiclandsofferprice",
+          "stringValue": "119.99",
+          "startDateTime": 1787187767000,
+          "maxQty": 99.0,
+          "endDateTime": 3301952566999,
+          "value": 119.99,
+          "partnumber": "25FHQWRH8WHTWHTXXFTW",
+          "minQty": 1.0,
+          "startDate": "2026-08-20T01:02:47.000UTC",
+          "endDate": "2074-08-20T01:02:46.999UTC"
+        }
+      ],
+      "dsgPriceIndicators": {
+        "dealsPercentage": 20.0,
+        "mapPriceIndicator": 0,
+        "priceIndicator": 0
+      },
+      "ratingValue": 4.7942,
+      "ratingCount": 311,
+      "quickViewEnabled": true,
+      "isColorPinned": true,
+      "isPinned": true,
+      "isComingSoon": false
+    },
+    {
+      "catentryId": 13319530,
+      "partnumber": "27485785",
+      "parentCatentryId": "12322291",
+      "parentPartnumber": "25NIKAZMRVPRPR1GRCLT",
+      "swatchPartnumber": "25NIKAZMRVPRPR1GRCLT_Black/Anthracite/Volt",
+      "name": "Nike Vapor Pro 1 Football Cleats",
+      "mfName": "Nike",
+      "badge": "Extended Sizes",
+      "thumbnail": "25NIKAZMRVPRPR1GRCLT",
+      "fullImage": "25NIKAZMRVPRPR1GRCLT",
+      "assetSeoUrl": "/p/nike-vapor-pro-1-football-cleats-25nikazmrvprpr1grclt/25nikazmrvprpr1grclt",
+      "dsgSeoUrl": "/p/nike-vapor-pro-1-football-cleats-25nikazmrvprpr1grclt/25nikazmrvprpr1grclt",
+      "dsgProductSortDate": "01/27/2025",
+      "attributes": "[{\"X_BRAND\":\"Nike\"},{\"PRIMARY_CATEGORY_DSG \":\"MensFootballCleats-129902\"},{\"5495\":\"Men's\"},{\"5495\":\"Women's\"},{\"5382\":\"Cleats\"},{\"4285\":\"Football\"},{\"X_BazaarVoice_ratings_DSG\":3.9587},{\"X_BazaarVoice_ratings_ovr_DSG\":3.9587},{\"X_BazaarVoice_count_DSG\":315},{\"X_BazaarVoice_count_ovr_DSG\":315},{\"X_BazaarVoice_q_count_DSG\":1},{\"5471\":\"Medium\"},{\"X_BazaarVoice_a_count_DSG\":0},{\"2101\":\"Adult\"},{\"3695\":\"Imported\"},{\"5733\":\"Yes\"},{\"5218\":\"Vapor Pro\"},{\"5940\":\"Laces\"},{\"2234\":\"Molded\"},{\"2233\":\"Low\"},{\"4187\":\"Cleats\"},{\"4005\":\"1/27/26\"},{\"4482\":\"Y\"},{\"3961\":\"True\"},{\"4298\":\"Extended Sizes\"},{\"4634\":\"FB3298\"},{\"4474\":\"01/27/2025\"},{\"4723\":\"Y\"},{\"4875\":\"One Day Sale\"},{\"4875\":\"total-athletic-footwear-new-arrivals\"},{\"5426\":\"Product shown in Men\u2019s and Women\u2019s sizes|Example: M7.5/W9.0 = Men\u2019s size 7.5, Women\u2019s size 9.0\"}]",
+      "floatFacets": [
+        {
+          "identifier": "dickssportinggoodsmapprice",
+          "stringValue": "144.99",
+          "startDateTime": 1775178507000,
+          "maxQty": 99.0,
+          "endDateTime": 3289943306999,
+          "value": 144.99,
+          "partnumber": "25NIKAZMRVPRPR1GRCLT",
+          "minQty": 1.0,
+          "startDate": "2026-04-03T01:08:27.000UTC",
+          "endDate": "2074-04-03T01:08:26.999UTC"
+        },
+        {
+          "identifier": "dickssportinggoodslistprice",
+          "stringValue": "144.99",
+          "startDateTime": 1775178507000,
+          "maxQty": 99.0,
+          "endDateTime": 3289943306999,
+          "value": 144.99,
+          "partnumber": "25NIKAZMRVPRPR1GRCLT",
+          "minQty": 1.0,
+          "startDate": "2026-04-03T01:08:27.000UTC",
+          "endDate": "2074-04-03T01:08:26.999UTC"
+        },
+        {
+          "identifier": "dickssportinggoodsofferprice",
+          "stringValue": "144.99",
+          "startDateTime": 1775178507000,
+          "maxQty": 99.0,
+          "endDateTime": 3289943306999,
+          "value": 144.99,
+          "partnumber": "25NIKAZMRVPRPR1GRCLT",
+          "minQty": 1.0,
+          "startDate": "2026-04-03T01:08:27.000UTC",
+          "endDate": "2074-04-03T01:08:26.999UTC"
+        }
+      ],
+      "dsgPriceIndicators": {
+        "dealsPercentage": 0.0,
+        "mapPriceIndicator": 0,
+        "priceIndicator": 1
+      },
+      "ratingValue": 3.9587,
+      "ratingCount": 315,
+      "quickViewEnabled": true,
+      "isColorPinned": false,
+      "isPinned": true,
+      "isComingSoon": false
+    },
+    {
+      "catentryId": 14250069,
+      "partnumber": "26623335",
+      "parentCatentryId": "14248945",
+      "parentPartnumber": "25NIKMMNKCLBBBPHDNFT",
+      "swatchPartnumber": "25NIKMMNKCLBBBPHDNFT_Black",
+      "name": "Nike Men's Club Fleece Hoodie",
+      "mfName": "Nike",
+      "thumbnail": "25NIKMMNKCLBBBPHDNFT",
+      "fullImage": "25NIKMMNKCLBBBPHDNFT",
+      "assetSeoUrl": "/p/nike-mens-club-brushed-fleece-hoodie-25nikmmnkclbbbphdnft/25nikmmnkclbbbphdnft",
+      "dsgSeoUrl": "/p/nike-mens-club-fleece-hoodie-25nikmmnkclbbbphdnft/25nikmmnkclbbbphdnft",
+      "dsgProductSortDate": "07/20/2026",
+      "attributes": "[{\"X_BRAND\":\"Nike\"},{\"PRIMARY_CATEGORY_DSG \":\"MensHoodiesSweatshirts-129827\"},{\"5495\":\"Men's\"},{\"5382\":\"Sweatshirts\"},{\"4285\":\"Casual\"},{\"X_BazaarVoice_ratings_DSG\":4.7987},{\"X_BazaarVoice_ratings_ovr_DSG\":4.7987},{\"X_BazaarVoice_count_DSG\":3954},{\"X_BazaarVoice_count_ovr_DSG\":3954},{\"X_BazaarVoice_q_count_DSG\":91},{\"X_BazaarVoice_a_count_DSG\":119},{\"5475\":\"Regular\"},{\"2101\":\"Men's\"},{\"4547\":\"Hoodies & Sweatshirts\"},{\"6120\":\"Fleece\"},{\"3078\":\"Pullover\"},{\"3576\":\"Hoodie\"},{\"3695\":\"Imported\"},{\"5733\":\"Yes\"},{\"6104\":\"Lead Time Hidden\"},{\"4482\":\"Y\"},{\"3961\":\"True\"},{\"4634\":\"FN3859\"},{\"4474\":\"07/20/2026\"},{\"4723\":\"Y\"},{\"4875\":\"Gifts for Him\"},{\"4875\":\"Top Gifts\"},{\"4875\":\"Easter Gifts for Him\"},{\"4875\":\"VDay Gifts for Him\"},{\"5333\":\"Body: 67-81% cotton/19-33% polyester; Hood lining: 67-81% cotton/19-33% polyester\"},{\"5426\":\"Standard fit: easy and traditional| Double-layer hood| Round braided drawcords\"}]",
+      "floatFacets": [
+        {
+          "identifier": "dickssportinggoodsmapprice",
+          "stringValue": "0.0",
+          "startDateTime": 1789088638000,
+          "maxQty": 99.0,
+          "endDateTime": 3303853437999,
+          "value": 0.0,
+          "partnumber": "25NIKMMNKCLBBBPHDNFT",
+          "minQty": 1.0,
+          "startDate": "2026-09-11T01:03:58.000UTC",
+          "endDate": "2074-09-11T01:03:57.999UTC"
+        },
+        {
+          "identifier": "dickssportinggoodslistprice",
+          "stringValue": "70.0",
+          "startDateTime": 1789088638000,
+          "maxQty": 99.0,
+          "endDateTime": 3303853437999,
+          "value": 70.0,
+          "partnumber": "25NIKMMNKCLBBBPHDNFT",
+          "minQty": 1.0,
+          "startDate": "2026-09-11T01:03:58.000UTC",
+          "endDate": "2074-09-11T01:03:57.999UTC"
+        },
+        {
+          "identifier": "dickssportinggoodsofferprice",
+          "stringValue": "49.98",
+          "startDateTime": 1788667200000,
+          "maxQty": 99.0,
+          "endDateTime": 1790492339999,
+          "value": 49.98,
+          "partnumber": "25NIKMMNKCLBBBPHDNFT",
+          "minQty": 1.0,
+          "startDate": "2026-09-06T04:00:00.000UTC",
+          "endDate": "2026-09-27T06:58:59.999UTC"
+        },
+        {
+          "identifier": "dickssportinggoodsofferprice",
+          "stringValue": "70.0",
+          "startDateTime": 1790492340000,
+          "maxQty": 99.0,
+          "endDateTime": 3303853437999,
+          "value": 70.0,
+          "partnumber": "25NIKMMNKCLBBBPHDNFT",
+          "minQty": 1.0,
+          "startDate": "2026-09-27T06:59:00.000UTC",
+          "endDate": "2074-09-11T01:03:57.999UTC"
+        }
+      ],
+      "dsgPriceIndicators": {
+        "dealsPercentage": 28.6,
+        "mapPriceIndicator": 0,
+        "priceIndicator": 0
+      },
+      "ratingValue": 4.7987,
+      "ratingCount": 3954,
+      "quickViewEnabled": true,
+      "isColorPinned": true,
+      "isPinned": false,
+      "isComingSoon": false
+    }
+  ]
+}

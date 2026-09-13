@@ -187,3 +187,38 @@ retailers:
     egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
     user_agent_profile: identified
     tracked_url_cap: 2500
+
+  # --- Added this task (2026-09-13): cabelas, dicks ---
+  # Cabela's runs the identical Coveo search backend/org as Bass Pro Shops
+  # (same corporate parent, Bass Pro Group) -- see fpt/adapters/cabelas.py's
+  # module docstring. Dick's Sporting Goods is a different
+  # `prod-catalog-product-api` v2/search JSON shape entirely -- see
+  # fpt/adapters/dicks.py's module docstring, including its own
+  # MAP-restriction ("See Price in Cart") skip handling. Both are parser-only
+  # this task; the real-browser/JS-capable fetch mechanism for each is a
+  # separate, out-of-scope concern (capabilities.requires_js is True on both
+  # adapters). `stealth_approved: false` per the file-wide default -- no
+  # retailer has owner approval for stealth today.
+  - slug: cabelas
+    name: "Cabela's"
+    base_url: "https://www.cabelas.com"
+    adapter_slug: cabelas
+    enabled: true
+    allowed_hosts: [cabelas.com, www.cabelas.com]
+    stealth_approved: false
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
+
+  - slug: dicks
+    name: "Dick's Sporting Goods"
+    base_url: "https://www.dickssportinggoods.com"
+    adapter_slug: dicks
+    enabled: true
+    allowed_hosts: [dickssportinggoods.com, www.dickssportinggoods.com]
+    stealth_approved: false
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
