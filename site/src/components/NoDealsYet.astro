@@ -1,0 +1,13 @@
+---
+// Distinct from EmptyDealsState: this renders when the feed itself has zero
+// published deals (nothing has cleared the 50% bar right now), not when a
+// visitor's filters happen to match nothing.
+---
+
+<div class="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
+  <p class="text-base font-semibold text-slate-700">No deals are live right now.</p>
+  <p class="mt-1 text-sm text-slate-500">
+    We only publish drops of 50% or more, and only after a second check confirms the price. Nothing
+    has cleared that bar in the last few hours — check back soon.
+  </p>
+</div>

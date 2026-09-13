@@ -1,0 +1,67 @@
+---
+import { categoryLabel } from '../lib/format';
+
+interface Props {
+  categories: string[];
+  retailers: { slug: string; name: string }[];
+}
+
+const { categories, retailers } = Astro.props;
+---
+
+<form
+  id="deal-filters"
+  class="flex flex-wrap items-end gap-4 rounded-lg border border-slate-200 bg-white p-4"
+  aria-label="Filter and sort deals"
+>
+  <div class="flex flex-col gap-1">
+    <label for="filter-category" class="text-xs font-semibold text-slate-600">Category</label>
+    <select id="filter-category" name="category" data-testid="filter-category" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+      <option value="all">All categories</option>
+      {categories.map((category) => (
+        <option value={category}>{categoryLabel(category)}</option>
+      ))}
+    </select>
+  </div>
+
+  <div class="flex flex-col gap-1">
+    <label for="filter-retailer" class="text-xs font-semibold text-slate-600">Retailer</label>
+    <select id="filter-retailer" name="retailer" data-testid="filter-retailer" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+      <option value="all">All retailers</option>
+      {retailers.map((retailer) => (
+        <option value={retailer.slug}>{retailer.name}</option>
+      ))}
+    </select>
+  </div>
+
+  <fieldset class="flex flex-col gap-1">
+    <legend class="text-xs font-semibold text-slate-600">Condition</legend>
+    <div class="flex gap-3 pt-1 text-sm">
+      <label class="flex items-center gap-1">
+        <input type="radio" name="condition" value="all" checked data-testid="filter-condition-all" />
+        All
+      </label>
+      <label class="flex items-center gap-1">
+        <input type="radio" name="condition" value="new" data-testid="filter-condition-new" />
+        New
+      </label>
+      <label class="flex items-center gap-1">
+        <input type="radio" name="condition" value="used" data-testid="filter-condition-used" />
+        Used
+      </label>
+    </div>
+  </fieldset>
+
+  <div class="flex flex-col gap-1">
+    <label for="filter-sort" class="text-xs font-semibold text-slate-600">Sort by</label>
+    <select id="filter-sort" name="sort" data-testid="filter-sort" class="rounded-md border border-slate-300 px-2 py-1.5 text-sm">
+      <option value="discount_desc">Biggest discount</option>
+      <option value="price_asc">Lowest price</option>
+      <option value="newest">Newest</option>
+    </select>
+  </div>
+
+  <p class="text-xs text-slate-400" id="filter-result-count" role="status" aria-live="polite"></p>
+</form>
+
+<script is:inline src="/scripts/filters.js" defer></script>

@@ -1,0 +1,55 @@
+{
+  "slug": "st-croix-triumph-spinning-rod",
+  "name": "St. Croix Triumph Spinning Rod",
+  "brand": "St. Croix",
+  "category": "rod",
+  "variants": [
+    {
+      "variant_pub_id": "vr_sample_001",
+      "label": "7'6\" Medium, Fast",
+      "attributes": {
+        "rod_type": "spinning",
+        "length_in": 90,
+        "power": "M",
+        "action": "F",
+        "pieces": 1
+      },
+      "offers": [
+        {
+          "retailer_slug": "tackle_warehouse",
+          "retailer_name": "Tackle Warehouse",
+          "url": "https://www.tacklewarehouse.com/sample/st-croix-triumph-spinning-rod",
+          "condition": "NEW",
+          "seller_name": "Tackle Warehouse",
+          "seller_type": "FIRST_PARTY",
+          "price_cents": 6497,
+          "shipping_cents": null,
+          "availability": "IN_STOCK",
+          "on_clearance": true,
+          "observed_at": "2026-09-11T22:20:15Z"
+        },
+        {
+          "retailer_slug": "tackle_warehouse",
+          "retailer_name": "Tackle Warehouse",
+          "url": "https://www.tacklewarehouse.com/sample/st-croix-triumph-used",
+          "condition": "USED_LIKE_NEW",
+          "seller_name": "Tackle Warehouse Used Gear",
+          "seller_type": "FIRST_PARTY",
+          "price_cents": 5499,
+          "shipping_cents": 0,
+          "availability": "IN_STOCK",
+          "on_clearance": false,
+          "observed_at": "2026-09-11T23:00:00Z"
+        }
+      ],
+      "history": [
+        { "date": "2026-06-15", "retailer_slug": "tackle_warehouse", "condition_group": "NEW", "price_cents": 12999 },
+        { "date": "2026-07-15", "retailer_slug": "tackle_warehouse", "condition_group": "NEW", "price_cents": 12999 },
+        { "date": "2026-08-15", "retailer_slug": "tackle_warehouse", "condition_group": "NEW", "price_cents": 12999 },
+        { "date": "2026-09-01", "retailer_slug": "tackle_warehouse", "condition_group": "NEW", "price_cents": 12999 },
+        { "date": "2026-09-10", "retailer_slug": "tackle_warehouse", "condition_group": "NEW", "price_cents": 6497 },
+        { "date": "2026-09-11", "retailer_slug": "tackle_warehouse", "condition_group": "NEW", "price_cents": 6497 }
+      ]
+    }
+  ]
+}

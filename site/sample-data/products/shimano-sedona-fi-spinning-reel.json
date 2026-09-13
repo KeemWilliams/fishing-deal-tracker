@@ -1,0 +1,36 @@
+{
+  "slug": "shimano-sedona-fi-spinning-reel",
+  "name": "Shimano Sedona FI Spinning Reel",
+  "brand": "Shimano",
+  "category": "reel",
+  "variants": [
+    {
+      "variant_pub_id": "vr_sample_004",
+      "label": "2500, 4.7 gear ratio",
+      "attributes": {
+        "reel_type": "spinning",
+        "size_code": "2500",
+        "gear_ratio": "4.7:1"
+      },
+      "offers": [
+        {
+          "retailer_slug": "academy",
+          "retailer_name": "Academy Sports + Outdoors",
+          "url": "https://www.academy.com/sample/shimano-sedona-fi",
+          "condition": "NEW",
+          "seller_name": "Academy Sports + Outdoors",
+          "seller_type": "FIRST_PARTY",
+          "price_cents": 3499,
+          "shipping_cents": 0,
+          "availability": "IN_STOCK",
+          "on_clearance": true,
+          "observed_at": "2026-09-11T19:30:00Z"
+        }
+      ],
+      "history": [
+        { "date": "2026-08-01", "retailer_slug": "academy", "condition_group": "NEW", "price_cents": 6999 },
+        { "date": "2026-09-11", "retailer_slug": "academy", "condition_group": "NEW", "price_cents": 3499 }
+      ]
+    }
+  ]
+}

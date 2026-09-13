@@ -1,0 +1,15 @@
+---
+interface Props {
+  hidden?: boolean;
+}
+
+const { hidden = false } = Astro.props;
+---
+
+<div id="deals-empty-state" class="mt-4 rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center" hidden={hidden}>
+  <p class="text-base font-semibold text-slate-700">No deals match those filters right now.</p>
+  <p class="mt-1 text-sm text-slate-500">
+    Try a different category or retailer, or check back later — new deep discounts get confirmed
+    throughout the day.
+  </p>
+</div>

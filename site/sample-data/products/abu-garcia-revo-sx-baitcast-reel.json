@@ -1,0 +1,38 @@
+{
+  "slug": "abu-garcia-revo-sx-baitcast-reel",
+  "name": "Abu Garcia Revo SX Baitcast Reel",
+  "brand": "Abu Garcia",
+  "category": "reel",
+  "variants": [
+    {
+      "variant_pub_id": "vr_sample_002",
+      "label": "SX-HS, 7.3:1, Right-hand",
+      "attributes": {
+        "reel_type": "baitcast",
+        "size_code": "SX-HS",
+        "gear_ratio": "7.3:1",
+        "handedness": "right"
+      },
+      "offers": [
+        {
+          "retailer_slug": "academy",
+          "retailer_name": "Academy Sports + Outdoors",
+          "url": "https://www.academy.com/sample/abu-garcia-revo-sx",
+          "condition": "NEW",
+          "seller_name": "Academy Sports + Outdoors",
+          "seller_type": "FIRST_PARTY",
+          "price_cents": 7499,
+          "shipping_cents": 0,
+          "availability": "IN_STOCK",
+          "on_clearance": true,
+          "observed_at": "2026-09-11T21:40:00Z"
+        }
+      ],
+      "history": [
+        { "date": "2026-08-01", "retailer_slug": "academy", "condition_group": "NEW", "price_cents": 15999 },
+        { "date": "2026-09-01", "retailer_slug": "academy", "condition_group": "NEW", "price_cents": 15999 },
+        { "date": "2026-09-10", "retailer_slug": "academy", "condition_group": "NEW", "price_cents": 7499 }
+      ]
+    }
+  ]
+}

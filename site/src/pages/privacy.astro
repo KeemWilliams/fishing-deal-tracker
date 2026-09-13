@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE_NAME } from '../lib/site-config';
+---
+
+<BaseLayout title="Privacy">
+  <div class="mx-auto max-w-2xl px-4 py-10 sm:px-6">
+    <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">Privacy</h1>
+
+    <div class="mt-6 space-y-4 text-slate-700">
+      <p>
+        {SITE_NAME} does not require an account to browse deals. We don't run advertising trackers on
+        this site, and outbound links to retailers carry no affiliate tags.
+      </p>
+      <p>
+        Price alerts (an optional feature that sends an email when a specific item drops further) have
+        not launched yet. When they do, this page will describe exactly what we collect and how to
+        remove yourself.
+      </p>
+      <p class="text-sm text-slate-500">This page is a placeholder and will be expanded before any data-collecting feature ships.</p>
+    </div>
+  </div>
+</BaseLayout>

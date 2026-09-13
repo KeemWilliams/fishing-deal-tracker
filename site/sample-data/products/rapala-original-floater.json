@@ -1,0 +1,36 @@
+{
+  "slug": "rapala-original-floater",
+  "name": "Rapala Original Floater",
+  "brand": "Rapala",
+  "category": "hard_bait",
+  "variants": [
+    {
+      "variant_pub_id": "vr_sample_005",
+      "label": "F11, Silver",
+      "attributes": {
+        "length_in": 4.375,
+        "color_key": "silver",
+        "color_display": "Silver"
+      },
+      "offers": [
+        {
+          "retailer_slug": "jandh",
+          "retailer_name": "J&H Tackle",
+          "url": "https://www.jandhtackle.com/sample/rapala-original-floater-f11",
+          "condition": "NEW",
+          "seller_name": "J&H Tackle",
+          "seller_type": "FIRST_PARTY",
+          "price_cents": 449,
+          "shipping_cents": 599,
+          "availability": "IN_STOCK",
+          "on_clearance": true,
+          "observed_at": "2026-09-11T15:00:00Z"
+        }
+      ],
+      "history": [
+        { "date": "2026-08-01", "retailer_slug": "jandh", "condition_group": "NEW", "price_cents": 999 },
+        { "date": "2026-09-08", "retailer_slug": "jandh", "condition_group": "NEW", "price_cents": 449 }
+      ]
+    }
+  ]
+}

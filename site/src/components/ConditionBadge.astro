@@ -1,0 +1,21 @@
+---
+import type { Condition } from '../lib/types';
+import { conditionLabel, isUsedCondition } from '../lib/format';
+
+interface Props {
+  condition: Condition;
+}
+
+const { condition } = Astro.props;
+const label = conditionLabel(condition);
+const used = isUsedCondition(condition);
+---
+
+<span
+  class:list={[
+    'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
+    used ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700',
+  ]}
+>
+  {label}
+</span>

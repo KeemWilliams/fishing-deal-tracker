@@ -1,0 +1,73 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import DealCard from '../components/DealCard.astro';
+import FilterBar from '../components/FilterBar.astro';
+import EmptyDealsState from '../components/EmptyDealsState.astro';
+import NoDealsYet from '../components/NoDealsYet.astro';
+import FeedStatusBanner from '../components/FeedStatusBanner.astro';
+import { loadDeals, loadMeta } from '../lib/feed';
+import { SITE_TAGLINE } from '../lib/site-config';
+import type { Deal } from '../lib/types';
+
+let deals: Deal[] = [];
+let loadError: string | null = null;
+
+const meta = await loadMeta();
+
+try {
+  const feed = await loadDeals();
+  deals = feed.deals;
+} catch (err) {
+  loadError = err instanceof Error ? err.message : 'Unknown error loading the deals feed.';
+}
+
+// Verified deals first, then retailer-claimed, then used -- matches the
+// publication order in the architecture doc (section 6.3) -- with the
+// biggest discount first within each lane. The sort control on the page
+// can override this to a pure discount/price/newest ordering.
+const laneOrder: Record<Deal['lane'], number> = { VERIFIED: 0, CLAIMED: 1, USED: 2 };
+const orderedDeals = [...deals].sort((a, b) => {
+  const laneDiff = laneOrder[a.lane] - laneOrder[b.lane];
+  if (laneDiff !== 0) return laneDiff;
+  return b.discount_pct - a.discount_pct;
+});
+
+const categories = Array.from(new Set(deals.map((d) => d.category)));
+const retailers = Array.from(new Map(deals.map((d) => [d.retailer_slug, { slug: d.retailer_slug, name: d.retailer_name ?? d.retailer_slug }])).values());
+---
+
+<BaseLayout>
+  <FeedStatusBanner meta={meta} />
+
+  <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">Deep discounts on fishing gear</h1>
+      <p class="mt-1 text-slate-600">{SITE_TAGLINE}</p>
+    </div>
+
+    {loadError ? (
+      <div class="rounded-lg border border-red-200 bg-red-50 p-6 text-red-800" role="alert">
+        <p class="font-semibold">We couldn't load today's deals.</p>
+        <p class="mt-1 text-sm">
+          Something went wrong reaching our price feed ({loadError}). This is on us, not your
+          connection — please check back shortly.
+        </p>
+      </div>
+    ) : deals.length === 0 ? (
+      <NoDealsYet />
+    ) : (
+      <>
+        <div class="mb-4">
+          <FilterBar categories={categories} retailers={retailers} />
+        </div>
+
+        <div id="deals-grid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {orderedDeals.map((deal) => (
+            <DealCard deal={deal} />
+          ))}
+        </div>
+        <EmptyDealsState hidden={true} />
+      </>
+    )}
+  </div>
+</BaseLayout>

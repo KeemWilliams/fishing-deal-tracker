@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { MIN_DISCOUNT_PCT } from '../lib/site-config';
+---
+
+<BaseLayout title="How we verify deals" description="How we calculate discounts and confirm every deal before it's published.">
+  <div class="mx-auto max-w-2xl px-4 py-10 sm:px-6">
+    <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">How we verify deals</h1>
+
+    <div class="mt-6 space-y-6 text-slate-700">
+      <section>
+        <h2 class="text-lg font-semibold text-slate-900">The {MIN_DISCOUNT_PCT}% bar</h2>
+        <p class="mt-2">
+          We only publish drops of {MIN_DISCOUNT_PCT}% or more. Smaller markdowns are common and not
+          worth your time, so we don't list them.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-semibold text-slate-900">What we measure the discount against</h2>
+        <p class="mt-2">We prefer prices we've actually tracked, in this order:</p>
+        <ol class="mt-2 list-decimal space-y-2 pl-5">
+          <li>
+            <strong>Our own price history.</strong> If we've tracked the same retailer's regular price
+            for a product over the past 90 days, we compare against the typical (median) price we
+            observed — excluding any days that were already marked down.
+          </li>
+          <li>
+            <strong>Another retailer's current price.</strong> If we don't have enough history at the
+            retailer offering the deal, we compare against the lowest price we can verify at another
+            tracked retailer for the same product and condition.
+          </li>
+          <li>
+            <strong>The retailer's own claimed price.</strong> If neither of the above is available, we
+            fall back to the retailer's own "was" or MSRP price. These deals are labeled separately as
+            "retailer's claimed price" and attributed to that retailer, because we haven't independently
+            confirmed the number.
+          </li>
+        </ol>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-semibold text-slate-900">Used gear</h2>
+        <p class="mt-2">
+          A used, open-box, or refurbished offer is never compared against its own "was" price. We
+          compare it against the lowest current new price we can verify for the same product — so a
+          used deal always means "cheaper than buying it new right now," never "cheaper than it used to
+          be new."
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-semibold text-slate-900">Two checks before anything goes live</h2>
+        <p class="mt-2">
+          Every deal is confirmed with a second, independent check of the product page — never just the
+          listing page it was first spotted on — before it's published or triggers an alert. If the
+          price changed, the identity of the item doesn't match, or the discount no longer clears
+          {MIN_DISCOUNT_PCT}%, it never gets published.
+        </p>
+      </section>
+    </div>
+  </div>
+</BaseLayout>

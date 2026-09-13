@@ -1,0 +1,38 @@
+{
+  "slug": "berkley-powerbait-power-worm",
+  "name": "Berkley PowerBait Power Worm",
+  "brand": "Berkley",
+  "category": "soft_bait",
+  "variants": [
+    {
+      "variant_pub_id": "vr_sample_003",
+      "label": "7 in, Black/Blue Fleck, 10-pack",
+      "attributes": {
+        "length_in": 7,
+        "color_key": "black_blue_fleck",
+        "color_display": "Black/Blue Fleck",
+        "unit_count": 10
+      },
+      "offers": [
+        {
+          "retailer_slug": "tackle_warehouse",
+          "retailer_name": "Tackle Warehouse",
+          "url": "https://www.tacklewarehouse.com/sample/powerbait-power-worm",
+          "condition": "NEW",
+          "seller_name": "Tackle Warehouse",
+          "seller_type": "FIRST_PARTY",
+          "price_cents": 249,
+          "shipping_cents": null,
+          "availability": "IN_STOCK",
+          "on_clearance": true,
+          "observed_at": "2026-09-11T20:10:00Z"
+        }
+      ],
+      "history": [
+        { "date": "2026-07-01", "retailer_slug": "tackle_warehouse", "condition_group": "NEW", "price_cents": 599 },
+        { "date": "2026-08-01", "retailer_slug": "tackle_warehouse", "condition_group": "NEW", "price_cents": 599 },
+        { "date": "2026-09-09", "retailer_slug": "tackle_warehouse", "condition_group": "NEW", "price_cents": 249 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ConditionBadge from '../../components/ConditionBadge.astro';
+import WatchAlertPlaceholder from '../../components/WatchAlertPlaceholder.astro';
+import { loadDeals, loadAllSampleProducts, loadProduct } from '../../lib/feed';
+import { formatCents, formatAbsoluteTime, categoryLabel } from '../../lib/format';
+
+export async function getStaticPaths() {
+  const base = import.meta.env.PUBLIC_FEED_BASE_URL;
+
+  if (!base) {
+    // Local/sample mode: every bundled sample product gets a page.
+    const products = await loadAllSampleProducts();
+    return products.map((product) => ({
+      params: { slug: product.slug },
+      props: { product },
+    }));
+  }
+
+  // Production: the feed doesn't expose a product index, so we build a page
+  // for every product referenced by a currently published deal. A product
+  // that drops out of the deals feed keeps its last-built page (with its
+  // own 90-day history) until the next site build.
+  const { deals } = await loadDeals();
+  const slugs = Array.from(new Set(deals.map((d) => d.product_slug)));
+  const products = await Promise.all(slugs.map((slug) => loadProduct(slug)));
+
+  return products
+    .filter((product): product is NonNullable<typeof product> => product !== null)
+    .map((product) => ({
+      params: { slug: product.slug },
+      props: { product },
+    }));
+}
+
+const { product } = Astro.props;
+---
+
+<BaseLayout title={product.name} description={`Price history and current offers for the ${product.name}.`}>
+  <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+    <p class="text-xs font-medium uppercase tracking-wide text-slate-400">{categoryLabel(product.category)} · {product.brand}</p>
+    <h1 class="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">{product.name}</h1>
+
+    {product.variants.map((variant) => (
+      <section class="mt-8 rounded-lg border border-slate-200 bg-white p-4 sm:p-6" aria-labelledby={`variant-${variant.variant_pub_id}`}>
+        <h2 id={`variant-${variant.variant_pub_id}`} class="text-lg font-semibold text-slate-900">
+          {variant.label}
+        </h2>
+
+        <h3 class="mt-4 text-sm font-semibold text-slate-600">Current offers</h3>
+        <ul class="mt-2 divide-y divide-slate-100" data-testid="variant-offers">
+          {variant.offers.map((offer) => (
+            <li class="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-medium text-slate-800">{offer.retailer_name ?? offer.retailer_slug}</span>
+                <ConditionBadge condition={offer.condition} />
+                {offer.availability !== 'IN_STOCK' && (
+                  <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500">
+                    {offer.availability === 'STORE_ONLY' ? 'In store only' : 'Out of stock'}
+                  </span>
+                )}
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-lg font-bold text-slate-900">{formatCents(offer.price_cents)}</span>
+                <a
+                  href={offer.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-sm font-semibold text-brand-700 hover:underline"
+                  data-testid="offer-outbound-link"
+                >
+                  View offer
+                  <span class="sr-only"> at {offer.retailer_name ?? offer.retailer_slug} (opens in a new tab)</span>
+                </a>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <h3 class="mt-6 text-sm font-semibold text-slate-600">Price history (last 90 days)</h3>
+        {variant.history.length > 0 ? (
+          <div class="mt-2 overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <caption class="sr-only">90-day price history for {variant.label}</caption>
+              <thead>
+                <tr class="text-xs uppercase tracking-wide text-slate-400">
+                  <th scope="col" class="py-1 pr-4">Date</th>
+                  <th scope="col" class="py-1 pr-4">Retailer</th>
+                  <th scope="col" class="py-1 pr-4">Condition</th>
+                  <th scope="col" class="py-1">Price</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                {variant.history.map((point) => (
+                  <tr>
+                    <td class="py-1.5 pr-4 text-slate-600">{point.date}</td>
+                    <td class="py-1.5 pr-4 text-slate-600">{point.retailer_slug}</td>
+                    <td class="py-1.5 pr-4 text-slate-600">{point.condition_group}</td>
+                    <td class="py-1.5 font-medium text-slate-900">{formatCents(point.price_cents)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p class="mt-2 text-sm text-slate-500">Not enough history yet for this variant.</p>
+        )}
+
+        <div class="mt-6">
+          <WatchAlertPlaceholder />
+        </div>
+      </section>
+    ))}
+
+    <p class="mt-6 text-xs text-slate-400">
+      Prices last observed {formatAbsoluteTime(product.variants[0]?.offers[0]?.observed_at ?? new Date().toISOString())}. We link directly
+      to each retailer — no affiliate tags.
+    </p>
+  </div>
+</BaseLayout>
