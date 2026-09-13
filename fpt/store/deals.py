@@ -686,6 +686,7 @@ def refresh_or_expire_active_deal(
     availability: str,
     min_discount_pct: float | None = None,
     max_price_increase_pct: float | None = None,
+    confirming_claimed_reference_cents: int | None = None,
 ) -> DealRecheckResult:
     """H2 + L1: called for every fresh OK observation of an offer whose
     open deal is already ACTIVE. Recomputes the discount against the
@@ -712,7 +713,26 @@ def refresh_or_expire_active_deal(
 
     `not_observed` staleness (no fresh observation at all, for any offer)
     is NOT this function's concern -- there is no observation to recheck
-    against in that case. See `expire_stale_deals` for that trigger."""
+    against in that case. See `expire_stale_deals` for that trigger.
+
+    BUG FIX (2026-09-13, found diagnosing real Neon data: 82 CONFIRMING ->
+    2 ACTIVE + 80 EXPIRED('reference_lost') + ~80 fresh CONFIRMING after
+    just two listing sweeps): for a CLAIMED-lane deal -- one that, BY
+    DEFINITION (architecture 6.1), has NO verified reference and was
+    confirmed using the retailer's own claimed/compare-at price (R4) --
+    this function used to call ONLY `resolve_verified_reference_for_offer`
+    and, finding nothing (as is guaranteed for a CLAIMED-lane deal unless
+    a verified reference has since appeared), set `reference_cents = None`
+    and immediately EXPIRE the deal with `reference_lost` on the VERY NEXT
+    OK observation of that offer, no matter how healthy the deal actually
+    was. This made every CLAIMED-lane ACTIVE deal a one-observation fluke:
+    it could reach ACTIVE, but could never survive being observed again.
+    `confirming_claimed_reference_cents` (the CURRENT observation's own
+    claimed reference, threaded from `fpt/store/pipeline.py`'s
+    `_try_recheck_active`) now backs a CLAIMED-lane fallback -- mirroring
+    the equivalent, already-correct fallback in `build_confirm_context`
+    below -- so a CLAIMED-lane deal's reference is only ever actually
+    "lost" when the retailer stops claiming one, not on every recheck."""
     thresholds = _load_deal_rules()
     confirm_cfg = thresholds.get("confirm") or {}
     min_discount = min_discount_pct if min_discount_pct is not None else thresholds.get("min_discount_pct", _DEFAULT_MIN_DISCOUNT_PCT)
@@ -734,6 +754,12 @@ def refresh_or_expire_active_deal(
     else:
         verified = resolve_verified_reference_for_offer(cur, offer_id)
         reference_cents = verified.cents if verified else None
+        if reference_cents is None and open_deal.lane == "CLAIMED" and confirming_claimed_reference_cents:
+            # See the bug-fix note above: a VERIFIED reference always wins
+            # when one exists (architecture 6.1); only fall back to the
+            # retailer's own current claimed price when this deal's lane
+            # never had a verified reference to begin with.
+            reference_cents = confirming_claimed_reference_cents
 
     if reference_cents is None or reference_cents <= 0:
         _expire_active_deal(cur, deal_id=open_deal.id, expire_reason="reference_lost")

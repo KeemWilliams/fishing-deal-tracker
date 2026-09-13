@@ -302,6 +302,7 @@ def _try_recheck_active(
             cur, open_deal=open_deal, offer_id=offer_id, observation_id=observed_id,
             compare_price_cents=compare_price, landed_price_cents=landed_price,
             availability=offer.availability.value,
+            confirming_claimed_reference_cents=offer.claimed_reference_cents,
         )
         return DealAction(kind=result.action, deal_id=open_deal.id, confirm_status=result.expire_reason)
     return None
