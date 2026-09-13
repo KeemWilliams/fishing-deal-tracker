@@ -56,6 +56,8 @@ def _register_builtin_adapters() -> None:
     from fpt.adapters.powerpro import PowerProAdapter
     from fpt.adapters.rodlocker import RodLockerAdapter
     from fpt.adapters.shimano import ShimanoAdapter
+    from fpt.adapters.sportsmans_guide import SportsmansGuideAdapter
+    from fpt.adapters.sportsmans_warehouse import SportsmansWarehouseAdapter
     from fpt.adapters.tackle_warehouse import TackleWarehouseAdapter
     from fpt.adapters.tackledirect import TackleDirectAdapter
     from fpt.adapters.uglystik import UglyStikAdapter
@@ -110,6 +112,14 @@ def _register_builtin_adapters() -> None:
     register(GLoomisAdapter())
     register(PowerProAdapter())
     register(JackallAdapter())
+    # Sportsman's Warehouse (SAP Hybris) and Sportsman's Guide (legacy
+    # ATG-style storefront) -- added in this task (2026-09-13). Both are
+    # plain server-rendered HTML, parsed with scrapling's Selector
+    # (matching tackle_warehouse.py's approach) rather than a JSON
+    # endpoint. See knowledge/research/fishing-big-outdoor-retailers-
+    # 2026-09-13.md and each adapter's module docstring.
+    register(SportsmansWarehouseAdapter())
+    register(SportsmansGuideAdapter())
 
 
 _register_builtin_adapters()

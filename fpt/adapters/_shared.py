@@ -199,6 +199,8 @@ FALLBACK_ALLOWED_HOSTS: dict[str, frozenset[str]] = {
     "gloomis": frozenset({"fishshop.shimano.com"}),
     "powerpro": frozenset({"fishshop.shimano.com"}),
     "jackall": frozenset({"fishshop.shimano.com"}),
+    "sportsmans_warehouse": frozenset({"www.sportsmans.com"}),
+    "sportsmans_guide": frozenset({"www.sportsmansguide.com"}),
 }
 
 

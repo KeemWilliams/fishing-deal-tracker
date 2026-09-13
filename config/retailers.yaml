@@ -352,3 +352,39 @@ retailers:
     egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
     user_agent_profile: identified
     tracked_url_cap: 2500
+
+  # --- Added this task (2026-09-13): sportsmans_warehouse, sportsmans_guide ---
+  # Two large outdoor retailers, both plain server-rendered HTML -- see
+  # knowledge/research/fishing-big-outdoor-retailers-2026-09-13.md.
+  # Sportsman's Warehouse is a SAP Commerce Cloud (Hybris) storefront with a
+  # dedicated fishing-clearance category (~2,960 SKUs, 65 pages); Sportsman's
+  # Guide is a legacy ATG-style storefront whose `fishdeals` collection mixes
+  # true clearance/on-sale rows with generic Members-Only badges -- see
+  # fpt/adapters/sportsmans_guide.py's module docstring for the badge-based
+  # filtering this requires. Both robots.txt files were re-verified live
+  # 2026-09-13 and neither disallows the discovery path used here nor names
+  # Claude-User/ClaudeBot specifically -- same conservative policy shape as
+  # every other retailer in this file.
+  - slug: sportsmans_warehouse
+    name: "Sportsman's Warehouse"
+    base_url: "https://www.sportsmans.com"
+    adapter_slug: sportsmans_warehouse
+    enabled: true
+    allowed_hosts: [www.sportsmans.com]
+    stealth_approved: false
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
+
+  - slug: sportsmans_guide
+    name: "Sportsman's Guide"
+    base_url: "https://www.sportsmansguide.com"
+    adapter_slug: sportsmans_guide
+    enabled: true
+    allowed_hosts: [www.sportsmansguide.com]
+    stealth_approved: false
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500
