@@ -187,6 +187,7 @@ FALLBACK_ALLOWED_HOSTS: dict[str, frozenset[str]] = {
     "fishingonline": frozenset({"www.fishingonline.com"}),
     "discounttackle": frozenset({"discounttackle.com"}),
     "rodlocker": frozenset({"rodlocker.com"}),
+    "basspro": frozenset({"basspro.com", "www.basspro.com"}),
 }
 
 

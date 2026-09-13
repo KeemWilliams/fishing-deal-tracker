@@ -166,3 +166,24 @@ retailers:
     egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
     user_agent_profile: identified
     tracked_url_cap: 2500
+
+  # --- Added this task (2026-09-13): basspro ---
+  # Akamai-fronted Next.js storefront whose listing data loads client-side
+  # from a Coveo search API, not from page HTML -- see fpt/adapters/
+  # basspro.py's module docstring and tests/fixtures/_capture/README.md.
+  # `stealth_approved: false` per the file-wide default above -- this
+  # retailer's real-browser fetch requirement (capabilities.requires_js is
+  # True on the adapter) is a fetch-layer concern, independent of and not
+  # satisfied by this flag; no owner approval for stealth exists for any
+  # retailer today.
+  - slug: basspro
+    name: "Bass Pro Shops"
+    base_url: "https://www.basspro.com"
+    adapter_slug: basspro
+    enabled: true
+    allowed_hosts: [basspro.com, www.basspro.com]
+    stealth_approved: false
+    policy: *conservative_policy
+    egress: {mode: DIRECT, proxy_url_env: null, api_key_env: null}
+    user_agent_profile: identified
+    tracked_url_cap: 2500

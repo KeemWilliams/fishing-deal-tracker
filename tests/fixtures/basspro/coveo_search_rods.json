@@ -1,0 +1,2065 @@
+{
+  "totalCount": 4,
+  "totalCountFiltered": 4,
+  "duration": 131,
+  "indexDuration": 79,
+  "requestDuration": 92,
+  "searchUid": "1963a2f7-99cf-4c39-bf6f-f7786142a9b3",
+  "pipeline": "ProductionPipeline",
+  "apiVersion": 2,
+  "splitTestRun": "ProductionPipeline-mirror-1777658155",
+  "queryCorrection": {
+    "corrections": []
+  },
+  "warnings": [
+    "The numerical facet for field 'offerprice' returned no values. Numerical facets require ranges to be configured. Enable automatic range generation or provide manual ranges."
+  ],
+  "index": "bassproshopsproductionl92epymr-gk6woka9-Indexer-12-xampq56n2hp4sq66z7ptk6khfy",
+  "logicalIndex": "default",
+  "indexRegion": "us-east-1",
+  "indexToken": "REDACTED_FOR_FIXTURE",
+  "refinedKeywords": [],
+  "triggers": [],
+  "termsToHighlight": {},
+  "phrasesToHighlight": {},
+  "groupByResults": [],
+  "facets": [
+    {
+      "facetId": "pieces",
+      "field": "pieces",
+      "moreValuesAvailable": false,
+      "values": [
+        {
+          "value": "1",
+          "state": "idle",
+          "numberOfResults": 498
+        },
+        {
+          "value": "2",
+          "state": "idle",
+          "numberOfResults": 199
+        },
+        {
+          "value": "3",
+          "state": "idle",
+          "numberOfResults": 24
+        },
+        {
+          "value": "4",
+          "state": "idle",
+          "numberOfResults": 15
+        },
+        {
+          "value": "Retractable Butt Section",
+          "state": "idle",
+          "numberOfResults": 13
+        },
+        {
+          "value": "Telescopic",
+          "state": "idle",
+          "numberOfResults": 7
+        },
+        {
+          "value": "5",
+          "state": "idle",
+          "numberOfResults": 1
+        },
+        {
+          "value": "6",
+          "state": "idle",
+          "numberOfResults": 1
+        }
+      ],
+      "indexScore": 0.9763516278751416
+    },
+    {
+      "facetId": "power",
+      "field": "power",
+      "moreValuesAvailable": true,
+      "values": [
+        {
+          "value": "Medium",
+          "state": "idle",
+          "numberOfResults": 394
+        },
+        {
+          "value": "Medium Heavy",
+          "state": "idle",
+          "numberOfResults": 383
+        },
+        {
+          "value": "Heavy",
+          "state": "idle",
+          "numberOfResults": 253
+        },
+        {
+          "value": "Medium Light",
+          "state": "idle",
+          "numberOfResults": 195
+        },
+        {
+          "value": "Light",
+          "state": "idle",
+          "numberOfResults": 102
+        },
+        {
+          "value": "X Heavy",
+          "state": "idle",
+          "numberOfResults": 88
+        },
+        {
+          "value": "Ultra Light",
+          "state": "idle",
+          "numberOfResults": 42
+        },
+        {
+          "value": "XX Heavy",
+          "state": "idle",
+          "numberOfResults": 26
+        },
+        {
+          "value": "Mag-Medium",
+          "state": "idle",
+          "numberOfResults": 5
+        },
+        {
+          "value": "XXX Heavy",
+          "state": "idle",
+          "numberOfResults": 5
+        }
+      ],
+      "indexScore": 0.9647419107908175
+    },
+    {
+      "facetId": "line_weight",
+      "field": "line_weight",
+      "moreValuesAvailable": true,
+      "values": [
+        {
+          "value": "10-20 lbs.",
+          "state": "idle",
+          "numberOfResults": 105
+        },
+        {
+          "value": "8-17 lbs.",
+          "state": "idle",
+          "numberOfResults": 103
+        },
+        {
+          "value": "6-12 lbs.",
+          "state": "idle",
+          "numberOfResults": 97
+        },
+        {
+          "value": "12-20 lbs.",
+          "state": "idle",
+          "numberOfResults": 78
+        },
+        {
+          "value": "12-25 lbs.",
+          "state": "idle",
+          "numberOfResults": 73
+        },
+        {
+          "value": "15-30 lbs.",
+          "state": "idle",
+          "numberOfResults": 67
+        },
+        {
+          "value": "4-10 lbs.",
+          "state": "idle",
+          "numberOfResults": 65
+        },
+        {
+          "value": "8-14 lbs.",
+          "state": "idle",
+          "numberOfResults": 57
+        },
+        {
+          "value": "10-17 lbs.",
+          "state": "idle",
+          "numberOfResults": 56
+        },
+        {
+          "value": "4-8 lbs.",
+          "state": "idle",
+          "numberOfResults": 38
+        }
+      ],
+      "indexScore": 0.9504077844509635
+    },
+    {
+      "facetId": "length",
+      "field": "length",
+      "moreValuesAvailable": true,
+      "values": [
+        {
+          "value": "7 ft",
+          "state": "idle",
+          "numberOfResults": 296
+        },
+        {
+          "value": "7 ft 6 in",
+          "state": "idle",
+          "numberOfResults": 163
+        },
+        {
+          "value": "6 ft 6 in",
+          "state": "idle",
+          "numberOfResults": 156
+        },
+        {
+          "value": "8 ft",
+          "state": "idle",
+          "numberOfResults": 79
+        },
+        {
+          "value": "6 ft",
+          "state": "idle",
+          "numberOfResults": 78
+        },
+        {
+          "value": "9 ft",
+          "state": "idle",
+          "numberOfResults": 77
+        },
+        {
+          "value": "7 ft 3 in",
+          "state": "idle",
+          "numberOfResults": 72
+        },
+        {
+          "value": "7 ft 2 in",
+          "state": "idle",
+          "numberOfResults": 68
+        },
+        {
+          "value": "6 ft 8 in",
+          "state": "idle",
+          "numberOfResults": 64
+        },
+        {
+          "value": "6 ft 10 in",
+          "state": "idle",
+          "numberOfResults": 58
+        }
+      ],
+      "indexScore": 0.8946507603306455
+    },
+    {
+      "facetId": "action",
+      "field": "action",
+      "moreValuesAvailable": true,
+      "values": [
+        {
+          "value": "Fast",
+          "state": "idle",
+          "numberOfResults": 385
+        },
+        {
+          "value": "Moderate Fast",
+          "state": "idle",
+          "numberOfResults": 172
+        },
+        {
+          "value": "Moderate",
+          "state": "idle",
+          "numberOfResults": 157
+        },
+        {
+          "value": "Extra Fast",
+          "state": "idle",
+          "numberOfResults": 129
+        },
+        {
+          "value": "Regular",
+          "state": "idle",
+          "numberOfResults": 12
+        },
+        {
+          "value": "Slow",
+          "state": "idle",
+          "numberOfResults": 11
+        },
+        {
+          "value": "Reaction",
+          "state": "idle",
+          "numberOfResults": 9
+        },
+        {
+          "value": "Moderate Slow",
+          "state": "idle",
+          "numberOfResults": 4
+        },
+        {
+          "value": "Mag-Moderate",
+          "state": "idle",
+          "numberOfResults": 3
+        },
+        {
+          "value": "Parabolic",
+          "state": "idle",
+          "numberOfResults": 2
+        }
+      ],
+      "indexScore": 0.8508749783149567
+    },
+    {
+      "facetId": "classification",
+      "field": "classification",
+      "moreValuesAvailable": false,
+      "values": [
+        {
+          "value": "Freshwater",
+          "state": "idle",
+          "numberOfResults": 407
+        },
+        {
+          "value": "Saltwater",
+          "state": "idle",
+          "numberOfResults": 236
+        }
+      ],
+      "indexScore": 0.7641813828716242
+    },
+    {
+      "facetId": "bvratings",
+      "field": "bvratings",
+      "moreValuesAvailable": false,
+      "values": [
+        {
+          "value": "5",
+          "state": "idle",
+          "numberOfResults": 266
+        },
+        {
+          "value": "4",
+          "state": "idle",
+          "numberOfResults": 241
+        },
+        {
+          "value": "3",
+          "state": "idle",
+          "numberOfResults": 32
+        },
+        {
+          "value": "1",
+          "state": "idle",
+          "numberOfResults": 11
+        },
+        {
+          "value": "2",
+          "state": "idle",
+          "numberOfResults": 2
+        }
+      ],
+      "indexScore": 0.42979809567395183
+    },
+    {
+      "facetId": "subcategory",
+      "field": "subcategory",
+      "moreValuesAvailable": true,
+      "values": [
+        {
+          "value": "Spinning",
+          "state": "idle",
+          "numberOfResults": 252
+        },
+        {
+          "value": "Casting",
+          "state": "idle",
+          "numberOfResults": 191
+        },
+        {
+          "value": "Conventional",
+          "state": "idle",
+          "numberOfResults": 63
+        },
+        {
+          "value": "Surf",
+          "state": "idle",
+          "numberOfResults": 35
+        },
+        {
+          "value": "Trolling",
+          "state": "idle",
+          "numberOfResults": 32
+        },
+        {
+          "value": "Crappie",
+          "state": "idle",
+          "numberOfResults": 26
+        },
+        {
+          "value": "Ice Fishing",
+          "state": "idle",
+          "numberOfResults": 21
+        },
+        {
+          "value": "Offshore",
+          "state": "idle",
+          "numberOfResults": 14
+        },
+        {
+          "value": "Catfish",
+          "state": "idle",
+          "numberOfResults": 11
+        },
+        {
+          "value": "Fly Rods",
+          "state": "idle",
+          "numberOfResults": 6
+        }
+      ],
+      "indexScore": 0.3783256164154113
+    },
+    {
+      "facetId": "retailstoreinventory",
+      "field": "retailstoreinventory",
+      "moreValuesAvailable": false,
+      "values": [
+        {
+          "value": "S33",
+          "state": "idle",
+          "numberOfResults": 231
+        },
+        {
+          "value": "S46",
+          "state": "idle",
+          "numberOfResults": 229
+        },
+        {
+          "value": "S74",
+          "state": "idle",
+          "numberOfResults": 226
+        },
+        {
+          "value": "S26",
+          "state": "idle",
+          "numberOfResults": 222
+        },
+        {
+          "value": "S409",
+          "state": "idle",
+          "numberOfResults": 216
+        },
+        {
+          "value": "S10",
+          "state": "idle",
+          "numberOfResults": 216
+        },
+        {
+          "value": "S4",
+          "state": "idle",
+          "numberOfResults": 213
+        },
+        {
+          "value": "S13",
+          "state": "idle",
+          "numberOfResults": 213
+        },
+        {
+          "value": "S57",
+          "state": "idle",
+          "numberOfResults": 212
+        },
+        {
+          "value": "S80",
+          "state": "idle",
+          "numberOfResults": 200
+        },
+        {
+          "value": "S45",
+          "state": "idle",
+          "numberOfResults": 199
+        },
+        {
+          "value": "S51",
+          "state": "idle",
+          "numberOfResults": 197
+        },
+        {
+          "value": "S41",
+          "state": "idle",
+          "numberOfResults": 194
+        },
+        {
+          "value": "S28",
+          "state": "idle",
+          "numberOfResults": 188
+        },
+        {
+          "value": "S76",
+          "state": "idle",
+          "numberOfResults": 186
+        },
+        {
+          "value": "S19",
+          "state": "idle",
+          "numberOfResults": 185
+        },
+        {
+          "value": "S451",
+          "state": "idle",
+          "numberOfResults": 184
+        },
+        {
+          "value": "S49",
+          "state": "idle",
+          "numberOfResults": 184
+        },
+        {
+          "value": "S453",
+          "state": "idle",
+          "numberOfResults": 182
+        },
+        {
+          "value": "S7",
+          "state": "idle",
+          "numberOfResults": 181
+        },
+        {
+          "value": "S56",
+          "state": "idle",
+          "numberOfResults": 178
+        },
+        {
+          "value": "S416",
+          "state": "idle",
+          "numberOfResults": 177
+        },
+        {
+          "value": "S32",
+          "state": "idle",
+          "numberOfResults": 177
+        },
+        {
+          "value": "S73",
+          "state": "idle",
+          "numberOfResults": 176
+        },
+        {
+          "value": "S12",
+          "state": "idle",
+          "numberOfResults": 175
+        },
+        {
+          "value": "S423",
+          "state": "idle",
+          "numberOfResults": 174
+        },
+        {
+          "value": "S75",
+          "state": "idle",
+          "numberOfResults": 171
+        },
+        {
+          "value": "S86",
+          "state": "idle",
+          "numberOfResults": 171
+        },
+        {
+          "value": "S6",
+          "state": "idle",
+          "numberOfResults": 170
+        },
+        {
+          "value": "S53",
+          "state": "idle",
+          "numberOfResults": 170
+        },
+        {
+          "value": "S428",
+          "state": "idle",
+          "numberOfResults": 166
+        },
+        {
+          "value": "S463",
+          "state": "idle",
+          "numberOfResults": 166
+        },
+        {
+          "value": "S64",
+          "state": "idle",
+          "numberOfResults": 166
+        },
+        {
+          "value": "S92",
+          "state": "idle",
+          "numberOfResults": 166
+        },
+        {
+          "value": "S418",
+          "state": "idle",
+          "numberOfResults": 165
+        },
+        {
+          "value": "S83",
+          "state": "idle",
+          "numberOfResults": 165
+        },
+        {
+          "value": "S407",
+          "state": "idle",
+          "numberOfResults": 162
+        },
+        {
+          "value": "S81",
+          "state": "idle",
+          "numberOfResults": 160
+        },
+        {
+          "value": "S31",
+          "state": "idle",
+          "numberOfResults": 160
+        },
+        {
+          "value": "S442",
+          "state": "idle",
+          "numberOfResults": 159
+        },
+        {
+          "value": "S22",
+          "state": "idle",
+          "numberOfResults": 159
+        },
+        {
+          "value": "S70",
+          "state": "idle",
+          "numberOfResults": 159
+        },
+        {
+          "value": "S439",
+          "state": "idle",
+          "numberOfResults": 158
+        },
+        {
+          "value": "S435",
+          "state": "idle",
+          "numberOfResults": 158
+        },
+        {
+          "value": "S421",
+          "state": "idle",
+          "numberOfResults": 158
+        },
+        {
+          "value": "S72",
+          "state": "idle",
+          "numberOfResults": 157
+        },
+        {
+          "value": "S54",
+          "state": "idle",
+          "numberOfResults": 155
+        },
+        {
+          "value": "S59",
+          "state": "idle",
+          "numberOfResults": 155
+        },
+        {
+          "value": "S3",
+          "state": "idle",
+          "numberOfResults": 154
+        },
+        {
+          "value": "S8",
+          "state": "idle",
+          "numberOfResults": 154
+        },
+        {
+          "value": "S14",
+          "state": "idle",
+          "numberOfResults": 153
+        },
+        {
+          "value": "S48",
+          "state": "idle",
+          "numberOfResults": 153
+        },
+        {
+          "value": "S472",
+          "state": "idle",
+          "numberOfResults": 153
+        },
+        {
+          "value": "S47",
+          "state": "idle",
+          "numberOfResults": 152
+        },
+        {
+          "value": "S478",
+          "state": "idle",
+          "numberOfResults": 152
+        },
+        {
+          "value": "S20",
+          "state": "idle",
+          "numberOfResults": 152
+        },
+        {
+          "value": "S424",
+          "state": "idle",
+          "numberOfResults": 151
+        },
+        {
+          "value": "S29",
+          "state": "idle",
+          "numberOfResults": 151
+        },
+        {
+          "value": "S85",
+          "state": "idle",
+          "numberOfResults": 151
+        },
+        {
+          "value": "S37",
+          "state": "idle",
+          "numberOfResults": 150
+        },
+        {
+          "value": "S40",
+          "state": "idle",
+          "numberOfResults": 149
+        },
+        {
+          "value": "S9",
+          "state": "idle",
+          "numberOfResults": 149
+        },
+        {
+          "value": "S1",
+          "state": "idle",
+          "numberOfResults": 149
+        },
+        {
+          "value": "S411",
+          "state": "idle",
+          "numberOfResults": 148
+        },
+        {
+          "value": "S5",
+          "state": "idle",
+          "numberOfResults": 148
+        },
+        {
+          "value": "S50",
+          "state": "idle",
+          "numberOfResults": 147
+        },
+        {
+          "value": "S15",
+          "state": "idle",
+          "numberOfResults": 146
+        },
+        {
+          "value": "S436",
+          "state": "idle",
+          "numberOfResults": 146
+        },
+        {
+          "value": "S39",
+          "state": "idle",
+          "numberOfResults": 146
+        },
+        {
+          "value": "S474",
+          "state": "idle",
+          "numberOfResults": 144
+        },
+        {
+          "value": "S65",
+          "state": "idle",
+          "numberOfResults": 143
+        },
+        {
+          "value": "S36",
+          "state": "idle",
+          "numberOfResults": 143
+        },
+        {
+          "value": "S431",
+          "state": "idle",
+          "numberOfResults": 142
+        },
+        {
+          "value": "S61",
+          "state": "idle",
+          "numberOfResults": 142
+        },
+        {
+          "value": "S97",
+          "state": "idle",
+          "numberOfResults": 142
+        },
+        {
+          "value": "S18",
+          "state": "idle",
+          "numberOfResults": 142
+        },
+        {
+          "value": "S462",
+          "state": "idle",
+          "numberOfResults": 141
+        },
+        {
+          "value": "S69",
+          "state": "idle",
+          "numberOfResults": 141
+        },
+        {
+          "value": "S457",
+          "state": "idle",
+          "numberOfResults": 140
+        },
+        {
+          "value": "S60",
+          "state": "idle",
+          "numberOfResults": 139
+        },
+        {
+          "value": "S27",
+          "state": "idle",
+          "numberOfResults": 137
+        },
+        {
+          "value": "S464",
+          "state": "idle",
+          "numberOfResults": 136
+        },
+        {
+          "value": "S414",
+          "state": "idle",
+          "numberOfResults": 135
+        },
+        {
+          "value": "S471",
+          "state": "idle",
+          "numberOfResults": 135
+        },
+        {
+          "value": "S35",
+          "state": "idle",
+          "numberOfResults": 134
+        },
+        {
+          "value": "S403",
+          "state": "idle",
+          "numberOfResults": 132
+        },
+        {
+          "value": "S38",
+          "state": "idle",
+          "numberOfResults": 132
+        },
+        {
+          "value": "S23",
+          "state": "idle",
+          "numberOfResults": 131
+        },
+        {
+          "value": "S52",
+          "state": "idle",
+          "numberOfResults": 130
+        },
+        {
+          "value": "S16",
+          "state": "idle",
+          "numberOfResults": 130
+        },
+        {
+          "value": "S412",
+          "state": "idle",
+          "numberOfResults": 129
+        },
+        {
+          "value": "S454",
+          "state": "idle",
+          "numberOfResults": 128
+        },
+        {
+          "value": "S420",
+          "state": "idle",
+          "numberOfResults": 128
+        },
+        {
+          "value": "S67",
+          "state": "idle",
+          "numberOfResults": 128
+        },
+        {
+          "value": "S473",
+          "state": "idle",
+          "numberOfResults": 128
+        },
+        {
+          "value": "S477",
+          "state": "idle",
+          "numberOfResults": 128
+        },
+        {
+          "value": "S66",
+          "state": "idle",
+          "numberOfResults": 127
+        },
+        {
+          "value": "S17",
+          "state": "idle",
+          "numberOfResults": 126
+        },
+        {
+          "value": "S465",
+          "state": "idle",
+          "numberOfResults": 126
+        },
+        {
+          "value": "S21",
+          "state": "idle",
+          "numberOfResults": 125
+        },
+        {
+          "value": "S417",
+          "state": "idle",
+          "numberOfResults": 125
+        },
+        {
+          "value": "S90",
+          "state": "idle",
+          "numberOfResults": 124
+        },
+        {
+          "value": "S444",
+          "state": "idle",
+          "numberOfResults": 124
+        },
+        {
+          "value": "S475",
+          "state": "idle",
+          "numberOfResults": 124
+        },
+        {
+          "value": "S408",
+          "state": "idle",
+          "numberOfResults": 124
+        },
+        {
+          "value": "S438",
+          "state": "idle",
+          "numberOfResults": 123
+        },
+        {
+          "value": "S479",
+          "state": "idle",
+          "numberOfResults": 122
+        },
+        {
+          "value": "S430",
+          "state": "idle",
+          "numberOfResults": 122
+        },
+        {
+          "value": "S426",
+          "state": "idle",
+          "numberOfResults": 121
+        },
+        {
+          "value": "S445",
+          "state": "idle",
+          "numberOfResults": 121
+        },
+        {
+          "value": "S468",
+          "state": "idle",
+          "numberOfResults": 121
+        },
+        {
+          "value": "S443",
+          "state": "idle",
+          "numberOfResults": 120
+        },
+        {
+          "value": "S43",
+          "state": "idle",
+          "numberOfResults": 120
+        },
+        {
+          "value": "S469",
+          "state": "idle",
+          "numberOfResults": 120
+        },
+        {
+          "value": "S410",
+          "state": "idle",
+          "numberOfResults": 120
+        },
+        {
+          "value": "S24",
+          "state": "idle",
+          "numberOfResults": 119
+        },
+        {
+          "value": "S30",
+          "state": "idle",
+          "numberOfResults": 119
+        },
+        {
+          "value": "S63",
+          "state": "idle",
+          "numberOfResults": 119
+        },
+        {
+          "value": "S458",
+          "state": "idle",
+          "numberOfResults": 116
+        },
+        {
+          "value": "S437",
+          "state": "idle",
+          "numberOfResults": 115
+        },
+        {
+          "value": "S78",
+          "state": "idle",
+          "numberOfResults": 114
+        },
+        {
+          "value": "S71",
+          "state": "idle",
+          "numberOfResults": 113
+        },
+        {
+          "value": "S459",
+          "state": "idle",
+          "numberOfResults": 106
+        },
+        {
+          "value": "S501",
+          "state": "idle",
+          "numberOfResults": 106
+        },
+        {
+          "value": "S91",
+          "state": "idle",
+          "numberOfResults": 104
+        },
+        {
+          "value": "S434",
+          "state": "idle",
+          "numberOfResults": 104
+        },
+        {
+          "value": "S506",
+          "state": "idle",
+          "numberOfResults": 101
+        },
+        {
+          "value": "S509",
+          "state": "idle",
+          "numberOfResults": 100
+        },
+        {
+          "value": "S429",
+          "state": "idle",
+          "numberOfResults": 100
+        },
+        {
+          "value": "S82",
+          "state": "idle",
+          "numberOfResults": 96
+        },
+        {
+          "value": "S96",
+          "state": "idle",
+          "numberOfResults": 96
+        },
+        {
+          "value": "S511",
+          "state": "idle",
+          "numberOfResults": 96
+        },
+        {
+          "value": "S432",
+          "state": "idle",
+          "numberOfResults": 95
+        },
+        {
+          "value": "S68",
+          "state": "idle",
+          "numberOfResults": 95
+        },
+        {
+          "value": "S448",
+          "state": "idle",
+          "numberOfResults": 94
+        },
+        {
+          "value": "S89",
+          "state": "idle",
+          "numberOfResults": 94
+        },
+        {
+          "value": "S488",
+          "state": "idle",
+          "numberOfResults": 94
+        },
+        {
+          "value": "S419",
+          "state": "idle",
+          "numberOfResults": 92
+        },
+        {
+          "value": "S44",
+          "state": "idle",
+          "numberOfResults": 92
+        },
+        {
+          "value": "S447",
+          "state": "idle",
+          "numberOfResults": 92
+        },
+        {
+          "value": "S452",
+          "state": "idle",
+          "numberOfResults": 91
+        },
+        {
+          "value": "S34",
+          "state": "idle",
+          "numberOfResults": 90
+        },
+        {
+          "value": "S480",
+          "state": "idle",
+          "numberOfResults": 89
+        },
+        {
+          "value": "S405",
+          "state": "idle",
+          "numberOfResults": 89
+        },
+        {
+          "value": "S84",
+          "state": "idle",
+          "numberOfResults": 88
+        },
+        {
+          "value": "S510",
+          "state": "idle",
+          "numberOfResults": 88
+        },
+        {
+          "value": "S486",
+          "state": "idle",
+          "numberOfResults": 87
+        },
+        {
+          "value": "S55",
+          "state": "idle",
+          "numberOfResults": 87
+        },
+        {
+          "value": "S476",
+          "state": "idle",
+          "numberOfResults": 86
+        },
+        {
+          "value": "S427",
+          "state": "idle",
+          "numberOfResults": 85
+        },
+        {
+          "value": "S481",
+          "state": "idle",
+          "numberOfResults": 85
+        },
+        {
+          "value": "S62",
+          "state": "idle",
+          "numberOfResults": 83
+        },
+        {
+          "value": "S507",
+          "state": "idle",
+          "numberOfResults": 82
+        },
+        {
+          "value": "S422",
+          "state": "idle",
+          "numberOfResults": 81
+        },
+        {
+          "value": "S42",
+          "state": "idle",
+          "numberOfResults": 81
+        },
+        {
+          "value": "S446",
+          "state": "idle",
+          "numberOfResults": 81
+        },
+        {
+          "value": "S406",
+          "state": "idle",
+          "numberOfResults": 81
+        },
+        {
+          "value": "S404",
+          "state": "idle",
+          "numberOfResults": 81
+        },
+        {
+          "value": "S401",
+          "state": "idle",
+          "numberOfResults": 80
+        },
+        {
+          "value": "S502",
+          "state": "idle",
+          "numberOfResults": 79
+        },
+        {
+          "value": "S402",
+          "state": "idle",
+          "numberOfResults": 79
+        },
+        {
+          "value": "S503",
+          "state": "idle",
+          "numberOfResults": 78
+        },
+        {
+          "value": "S425",
+          "state": "idle",
+          "numberOfResults": 78
+        },
+        {
+          "value": "S482",
+          "state": "idle",
+          "numberOfResults": 77
+        },
+        {
+          "value": "S455",
+          "state": "idle",
+          "numberOfResults": 75
+        },
+        {
+          "value": "S433",
+          "state": "idle",
+          "numberOfResults": 74
+        },
+        {
+          "value": "S504",
+          "state": "idle",
+          "numberOfResults": 74
+        },
+        {
+          "value": "S450",
+          "state": "idle",
+          "numberOfResults": 74
+        },
+        {
+          "value": "S492",
+          "state": "idle",
+          "numberOfResults": 74
+        },
+        {
+          "value": "S505",
+          "state": "idle",
+          "numberOfResults": 72
+        },
+        {
+          "value": "S413",
+          "state": "idle",
+          "numberOfResults": 70
+        },
+        {
+          "value": "S484",
+          "state": "idle",
+          "numberOfResults": 69
+        },
+        {
+          "value": "S449",
+          "state": "idle",
+          "numberOfResults": 68
+        },
+        {
+          "value": "S456",
+          "state": "idle",
+          "numberOfResults": 68
+        },
+        {
+          "value": "S440",
+          "state": "idle",
+          "numberOfResults": 68
+        },
+        {
+          "value": "S483",
+          "state": "idle",
+          "numberOfResults": 66
+        },
+        {
+          "value": "S25",
+          "state": "idle",
+          "numberOfResults": 65
+        },
+        {
+          "value": "S466",
+          "state": "idle",
+          "numberOfResults": 65
+        },
+        {
+          "value": "S461",
+          "state": "idle",
+          "numberOfResults": 64
+        },
+        {
+          "value": "S441",
+          "state": "idle",
+          "numberOfResults": 64
+        },
+        {
+          "value": "S93",
+          "state": "idle",
+          "numberOfResults": 62
+        },
+        {
+          "value": "S415",
+          "state": "idle",
+          "numberOfResults": 62
+        },
+        {
+          "value": "S494",
+          "state": "idle",
+          "numberOfResults": 22
+        },
+        {
+          "value": "S199",
+          "state": "idle",
+          "numberOfResults": 8
+        },
+        {
+          "value": "S98",
+          "state": "idle",
+          "numberOfResults": 7
+        },
+        {
+          "value": "S99",
+          "state": "idle",
+          "numberOfResults": 6
+        }
+      ],
+      "indexScore": 0.35166409849677216
+    },
+    {
+      "facetId": "maxavailquantity",
+      "field": "maxavailquantity",
+      "moreValuesAvailable": false,
+      "values": [
+        {
+          "start": 10,
+          "end": 9999999,
+          "endInclusive": false,
+          "state": "idle",
+          "numberOfResults": 514
+        },
+        {
+          "start": 1,
+          "end": 10,
+          "endInclusive": true,
+          "state": "idle",
+          "numberOfResults": 147
+        },
+        {
+          "start": -1,
+          "end": 0,
+          "endInclusive": true,
+          "state": "idle",
+          "numberOfResults": 0
+        }
+      ],
+      "indexScore": 0.34395684869997417,
+      "domain": {
+        "start": 1.0,
+        "end": 2240.0
+      }
+    },
+    {
+      "facetId": "offerprice",
+      "field": "offerprice",
+      "moreValuesAvailable": false,
+      "values": [
+        {
+          "start": 0,
+          "end": 100,
+          "endInclusive": false,
+          "state": "idle",
+          "numberOfResults": 191
+        },
+        {
+          "start": 100,
+          "end": 200,
+          "endInclusive": false,
+          "state": "idle",
+          "numberOfResults": 261
+        },
+        {
+          "start": 200,
+          "end": 300,
+          "endInclusive": false,
+          "state": "idle",
+          "numberOfResults": 141
+        },
+        {
+          "start": 300,
+          "end": 400,
+          "endInclusive": false,
+          "state": "idle",
+          "numberOfResults": 65
+        },
+        {
+          "start": 400,
+          "end": 500,
+          "endInclusive": false,
+          "state": "idle",
+          "numberOfResults": 27
+        },
+        {
+          "start": 500,
+          "end": 1000,
+          "endInclusive": false,
+          "state": "idle",
+          "numberOfResults": 26
+        },
+        {
+          "start": 1000,
+          "end": 5000,
+          "endInclusive": false,
+          "state": "idle",
+          "numberOfResults": 3
+        },
+        {
+          "start": 5000,
+          "end": 10000,
+          "endInclusive": false,
+          "state": "idle",
+          "numberOfResults": 0
+        },
+        {
+          "start": 10000,
+          "end": 25000,
+          "endInclusive": false,
+          "state": "idle",
+          "numberOfResults": 0
+        },
+        {
+          "start": 25000,
+          "end": 40000,
+          "endInclusive": false,
+          "state": "idle",
+          "numberOfResults": 0
+        },
+        {
+          "start": 40000,
+          "end": 65000,
+          "endInclusive": false,
+          "state": "idle",
+          "numberOfResults": 0
+        },
+        {
+          "start": 65000,
+          "end": 80000,
+          "endInclusive": false,
+          "state": "idle",
+          "numberOfResults": 0
+        },
+        {
+          "start": 80000,
+          "end": 999999,
+          "endInclusive": false,
+          "state": "idle",
+          "numberOfResults": 0
+        }
+      ],
+      "indexScore": 0.2942857142857143,
+      "domain": {
+        "start": 14.99,
+        "end": 1200.0
+      }
+    },
+    {
+      "facetId": "offerpricefilter",
+      "field": "offerprice",
+      "moreValuesAvailable": false,
+      "values": [],
+      "indexScore": 0.2942857142857143,
+      "domain": {
+        "start": 14.99,
+        "end": 1200.0
+      }
+    },
+    {
+      "facetId": "brand",
+      "field": "brand",
+      "moreValuesAvailable": true,
+      "values": [
+        {
+          "value": "13 Fishing",
+          "state": "idle",
+          "numberOfResults": 14
+        },
+        {
+          "value": "2B Fishing",
+          "state": "idle",
+          "numberOfResults": 3
+        },
+        {
+          "value": "6th Sense Fishing",
+          "state": "idle",
+          "numberOfResults": 11
+        },
+        {
+          "value": "Abu Garcia",
+          "state": "idle",
+          "numberOfResults": 12
+        },
+        {
+          "value": "Ardent",
+          "state": "idle",
+          "numberOfResults": 3
+        },
+        {
+          "value": "B'n'M",
+          "state": "idle",
+          "numberOfResults": 24
+        },
+        {
+          "value": "Bait Stik",
+          "state": "idle",
+          "numberOfResults": 2
+        },
+        {
+          "value": "Bass Pro Shops",
+          "state": "idle",
+          "numberOfResults": 60
+        },
+        {
+          "value": "Beaver Dam",
+          "state": "idle",
+          "numberOfResults": 1
+        },
+        {
+          "value": "Berkley",
+          "state": "idle",
+          "numberOfResults": 1
+        }
+      ],
+      "indexScore": 0.2932673561284576
+    },
+    {
+      "facetId": "currentoffers",
+      "field": "currentoffers",
+      "moreValuesAvailable": false,
+      "values": [
+        {
+          "value": "CLUB Member Savings",
+          "state": "idle",
+          "numberOfResults": 8
+        },
+        {
+          "value": "New",
+          "state": "idle",
+          "numberOfResults": 8
+        },
+        {
+          "value": "Clearance",
+          "state": "idle",
+          "numberOfResults": 4
+        },
+        {
+          "value": "Sale",
+          "state": "idle",
+          "numberOfResults": 2
+        }
+      ],
+      "indexScore": 0.05409045474788461
+    },
+    {
+      "facetId": "gear_ratio",
+      "field": "gear_ratio",
+      "moreValuesAvailable": false,
+      "values": [
+        {
+          "value": "4.25:1",
+          "state": "idle",
+          "numberOfResults": 1
+        },
+        {
+          "value": "4.75:1",
+          "state": "idle",
+          "numberOfResults": 1
+        },
+        {
+          "value": "5.9:1",
+          "state": "idle",
+          "numberOfResults": 1
+        },
+        {
+          "value": "6.2:1",
+          "state": "idle",
+          "numberOfResults": 1
+        },
+        {
+          "value": "7.5:1",
+          "state": "idle",
+          "numberOfResults": 1
+        }
+      ],
+      "indexScore": 0.00029095947350190514
+    },
+    {
+      "facetId": "condition",
+      "field": "condition",
+      "moreValuesAvailable": false,
+      "values": [],
+      "indexScore": 0.0
+    }
+  ],
+  "suggestedFacets": [],
+  "categoryFacets": [],
+  "results": [
+    {
+      "title": "Bass Pro Shops Graphite Series Spinning Rod",
+      "uri": "variant://3074457345621780690",
+      "printableUri": "variant://3074457345621780690",
+      "clickUri": "variant://3074457345621780690",
+      "uniqueId": "42.33413$variant://3074457345621780690",
+      "primaryid": "PJNMHMLFGPB3A2SPMJEUKNBXKBAVELRTGM2DCMZOMRSWMYLVNR2A",
+      "excerpt": "0 5'6\" 2-8 lbs. GSS56LS-2 ... Bass Pro Shops Graphite Series Spinning Rod - 5'6\" - Light - 2 Pieces - A ... 101048321 ... Light ... 3234179 Crappie ... 57403 ... 900005544175",
+      "firstSentences": null,
+      "summary": null,
+      "flags": "HasHtmlVersion;SkipSentencesScoring;HasAllMetaDataStream",
+      "hasHtmlVersion": true,
+      "hasMobileHtmlVersion": false,
+      "score": 6447,
+      "percentScore": 100.0,
+      "rankingInfo": null,
+      "rating": 0.0,
+      "isTopResult": false,
+      "isRecommendation": false,
+      "isUserActionView": false,
+      "titleHighlights": [],
+      "firstSentencesHighlights": [],
+      "excerptHighlights": [],
+      "printableUriHighlights": [],
+      "summaryHighlights": [],
+      "parentResult": null,
+      "childResults": [],
+      "totalNumberOfChildResults": 11,
+      "absentTerms": [],
+      "raw": {
+        "isproductcluboffer": "0",
+        "systitle": "Bass Pro Shops Graphite Series Spinning Rod",
+        "minlistprice": 49.99,
+        "sysurihash": "zZ\u00f1e3\u00f0jObIE47PAR",
+        "sku_catentry_id": "3074457345621780690",
+        "urihash": "zZ\u00f1e3\u00f0jObIE47PAR",
+        "bvavgrating": 3.7543,
+        "isseamless": "0",
+        "isproductclboffer": "0",
+        "inactiveskus": "3234182",
+        "offerprice": 49.99,
+        "subcategory": "Spinning",
+        "ec_rating": 3.7543,
+        "brand": "Bass Pro Shops",
+        "ismacksexclusive": "0",
+        "buyable": "1",
+        "isnew": "0",
+        "isgiftcard": "0",
+        "iscustomizable": "0",
+        "hasdisclaimer": "1",
+        "isproductspecialoffer": "0",
+        "permanentid": "3234179",
+        "isclboffer": "0",
+        "syslanguage": [
+          "English"
+        ],
+        "isproductclubexclusive": "0",
+        "maxlistprice": 49.99,
+        "listprice": 49.99,
+        "minsavings": 0.0,
+        "childcount": 11,
+        "maxofferprice": 49.99,
+        "title": "Bass Pro Shops Graphite Series Spinning Rod",
+        "ec_brand": "Bass Pro Shops",
+        "issuppressor": "0",
+        "objecttype": "Product",
+        "productinstoreonly": "0",
+        "thumbnail": "https://assets.basspro.com/image/list/fn_select:jq:first(.%5B%5D%7Cselect(.public_id%20%7C%20endswith(%22main%22)))/3234179.json?$Prod_PLPThumb$",
+        "maxpercentsavings": 0.0,
+        "isgun": "0",
+        "isproductfreeoffer": 0,
+        "category": "Fishing Rods",
+        "product_catentry_id": "3074457345621780159",
+        "syssource": "BassProCatalogPROD",
+        "isdropship": "0",
+        "ec_thumbnails": "https://assets.basspro.com/image/list/fn_select:jq:first(.%5B%5D%7Cselect(.public_id%20%7C%20endswith(%22main%22)))/3234179.json?$Prod_PLPThumb$",
+        "topthumbnail": "https://assets.basspro.com/image/list/fn_select:jq:first(.%5B%5D%7Cselect(.public_id%20%7C%20endswith(%22main%22)))/3234179.json?$Prod_PLPThumb$",
+        "producturlkeyword": "bass-pro-shops-graphite-series-spinning-rod-101048321",
+        "field4": "3234178",
+        "minpercentsavings": 0.0,
+        "cloudinary_id": "ProductImages/100/422283-318741_main",
+        "sku": "3234179",
+        "paypalallowed": "1",
+        "source": "BassProCatalogPROD",
+        "isproductdiscounted": 0,
+        "bvreviews": 289.0,
+        "collection": "default",
+        "minofferprice": 49.99,
+        "webid": "101048321",
+        "swatchcount": 0,
+        "language": [
+          "English"
+        ],
+        "maxsavings": 0.0,
+        "isusedgun": "0",
+        "syscollection": "default"
+      },
+      "Title": "Bass Pro Shops Graphite Series Spinning Rod",
+      "Uri": "variant://3074457345621780690",
+      "PrintableUri": "variant://3074457345621780690",
+      "ClickUri": "variant://3074457345621780690",
+      "UniqueId": "42.33413$variant://3074457345621780690",
+      "Excerpt": "0 5'6\" 2-8 lbs. GSS56LS-2 ... Bass Pro Shops Graphite Series Spinning Rod - 5'6\" - Light - 2 Pieces - A ... 101048321 ... Light ... 3234179 Crappie ... 57403 ... 900005544175",
+      "FirstSentences": null
+    },
+    {
+      "title": "Bass Pro Shops Johnny Morris CarbonLite Technique Casting Rod",
+      "uri": "variant://3074457345625029719",
+      "printableUri": "variant://3074457345625029719",
+      "clickUri": "variant://3074457345625029719",
+      "uniqueId": "42.33413$variant://3074457345625029719",
+      "primaryid": "IZYHC5LTPI2UVQ5QOJ4DMV2HGVMS4MZTGQYTGLTEMVTGC5LMOQ",
+      "excerpt": "8-17 lbs. JCTB70MTF ... Bass Pro Shops Johnny Morris CarbonLite Technique Casting Rod - 7' - Medium - Fast - ... 101451203 1 ... 3810338 Bass ... 70178 ... Carbonlite Jerkbait",
+      "firstSentences": null,
+      "summary": null,
+      "flags": "HasHtmlVersion;SkipSentencesScoring;HasAllMetaDataStream",
+      "hasHtmlVersion": true,
+      "hasMobileHtmlVersion": false,
+      "score": 6307,
+      "percentScore": 100.0,
+      "rankingInfo": null,
+      "rating": 0.0,
+      "isTopResult": false,
+      "isRecommendation": false,
+      "isUserActionView": false,
+      "titleHighlights": [],
+      "firstSentencesHighlights": [],
+      "excerptHighlights": [],
+      "printableUriHighlights": [],
+      "summaryHighlights": [],
+      "parentResult": null,
+      "childResults": [],
+      "totalNumberOfChildResults": 13,
+      "absentTerms": [],
+      "raw": {
+        "isproductcluboffer": "0",
+        "isproductclbofferusd": "1",
+        "systitle": "Bass Pro Shops Johnny Morris CarbonLite Technique Casting Rod",
+        "minlistprice": 129.99,
+        "sysurihash": "Fpqusz5J\u00f0rx6WG5Y",
+        "sku_catentry_id": "3074457345625029719",
+        "urihash": "Fpqusz5J\u00f0rx6WG5Y",
+        "bvavgrating": 4.6594,
+        "isseamless": "0",
+        "isproductclboffer": "1",
+        "offerprice": 139.99,
+        "subcategory": "Casting",
+        "ec_rating": 4.6594,
+        "clbsavingsusd": 25.01,
+        "brand": "Bass Pro Shops",
+        "minclbpercentsavingsusd": 15.0,
+        "ismacksexclusive": "0",
+        "isclbofferusd": "1",
+        "buyable": "1",
+        "isnew": "0",
+        "maxclbsavingsusd": 25.01,
+        "clbpercentsavingsusd": 17.0,
+        "isgiftcard": "0",
+        "iscustomizable": "0",
+        "hasdisclaimer": "1",
+        "isproductspecialoffer": "0",
+        "permanentid": "3810338",
+        "isclboffer": "1",
+        "maxclbofferpriceusd": 134.98,
+        "syslanguage": [
+          "English"
+        ],
+        "isproductclubexclusive": "0",
+        "maxlistprice": 159.99,
+        "listprice": 139.99,
+        "minsavings": 0.0,
+        "childcount": 13,
+        "maxofferprice": 159.99,
+        "title": "Bass Pro Shops Johnny Morris CarbonLite Technique Casting Rod",
+        "ec_brand": "Bass Pro Shops",
+        "objecttype": "Product",
+        "clbofferpriceusd": 114.98,
+        "productinstoreonly": "0",
+        "thumbnail": "https://assets.basspro.com/image/list/fn_select:jq:first(.%5B%5D%7Cselect(.public_id%20%7C%20endswith(%22main%22)))/3810338.json?$Prod_PLPThumb$",
+        "maxpercentsavings": 0.0,
+        "isgun": "0",
+        "isproductfreeoffer": 0,
+        "category": "Fishing Rods",
+        "currentoffers": [
+          "CLUB Member Savings"
+        ],
+        "product_catentry_id": "3074457345625029201",
+        "syssource": "BassProCatalogPROD",
+        "isdropship": "0",
+        "ec_thumbnails": "https://assets.basspro.com/image/list/fn_select:jq:first(.%5B%5D%7Cselect(.public_id%20%7C%20endswith(%22main%22)))/3810338.json?$Prod_PLPThumb$",
+        "minclbofferpriceusd": 104.98,
+        "topthumbnail": "https://assets.basspro.com/image/list/fn_select:jq:first(.%5B%5D%7Cselect(.public_id%20%7C%20endswith(%22main%22)))/3810338.json?$Prod_PLPThumb$",
+        "producturlkeyword": "bass-pro-shops-johnny-morris-carbonlite-technique-casting-rod",
+        "field4": "3810337",
+        "minpercentsavings": 0.0,
+        "minclbsavingsusd": 25.01,
+        "cloudinary_id": "ProductImages/100/master7_101451203_main",
+        "clbproductallskus": "1",
+        "maxclbpercentsavingsusd": 19.0,
+        "sku": "3810338",
+        "paypalallowed": "1",
+        "source": "BassProCatalogPROD",
+        "isproductdiscounted": 0,
+        "bvreviews": 138.0,
+        "collection": "default",
+        "minofferprice": 129.99,
+        "webid": "101451203",
+        "outfitter_pick": "1",
+        "swatchcount": 0,
+        "language": [
+          "English"
+        ],
+        "maxsavings": 0.0,
+        "isusedgun": "0",
+        "syscollection": "default"
+      },
+      "Title": "Bass Pro Shops Johnny Morris CarbonLite Technique Casting Rod",
+      "Uri": "variant://3074457345625029719",
+      "PrintableUri": "variant://3074457345625029719",
+      "ClickUri": "variant://3074457345625029719",
+      "UniqueId": "42.33413$variant://3074457345625029719",
+      "Excerpt": "8-17 lbs. JCTB70MTF ... Bass Pro Shops Johnny Morris CarbonLite Technique Casting Rod - 7' - Medium - Fast - ... 101451203 1 ... 3810338 Bass ... 70178 ... Carbonlite Jerkbait",
+      "FirstSentences": null
+    },
+    {
+      "title": "Offshore Angler Power Plus Trophy Class Surf Spinning Rod",
+      "uri": "variant://254973",
+      "printableUri": "variant://254973",
+      "clickUri": "variant://254973",
+      "uniqueId": "42.33413$variant://254973",
+      "primaryid": "NR2EMYKVITB3AOKPMVKHSSLZNRNC4MZTGQYTGLTEMVTGC5LMOQ",
+      "excerpt": "Moderate ... 4 ... 0 7' 12-20 lbs. 2024 ... Offshore Angler Power Plus Trophy Class Surf Spinning Rod - 7' ... 2231565 2 Medium ... 2231566 30988 ... 092229954189",
+      "firstSentences": null,
+      "summary": null,
+      "flags": "HasHtmlVersion;SkipSentencesScoring;HasAllMetaDataStream",
+      "hasHtmlVersion": true,
+      "hasMobileHtmlVersion": false,
+      "score": 5477,
+      "percentScore": 100.0,
+      "rankingInfo": null,
+      "rating": 0.0,
+      "isTopResult": false,
+      "isRecommendation": false,
+      "isUserActionView": false,
+      "titleHighlights": [],
+      "firstSentencesHighlights": [],
+      "excerptHighlights": [],
+      "printableUriHighlights": [],
+      "summaryHighlights": [],
+      "parentResult": null,
+      "childResults": [],
+      "totalNumberOfChildResults": 6,
+      "absentTerms": [],
+      "raw": {
+        "isproductcluboffer": "0",
+        "systitle": "Offshore Angler Power Plus Trophy Class Surf Spinning Rod",
+        "minlistprice": 34.99,
+        "sysurihash": "ltFaUD\u00f09OeTyIylZ",
+        "sku_catentry_id": "254973",
+        "urihash": "ltFaUD\u00f09OeTyIylZ",
+        "bvavgrating": 4.3279,
+        "isseamless": "0",
+        "isproductclboffer": "0",
+        "offerprice": 34.99,
+        "subcategory": "Spinning",
+        "ec_rating": 4.3279,
+        "brand": "Offshore Angler",
+        "ismacksexclusive": "0",
+        "buyable": "1",
+        "isnew": "0",
+        "isgiftcard": "0",
+        "iscustomizable": "0",
+        "hasdisclaimer": "1",
+        "isproductspecialoffer": "0",
+        "permanentid": "2231566",
+        "isclboffer": "0",
+        "syslanguage": [
+          "English"
+        ],
+        "isproductclubexclusive": "0",
+        "maxlistprice": 54.99,
+        "listprice": 34.99,
+        "minsavings": 0.0,
+        "childcount": 6,
+        "maxofferprice": 54.99,
+        "title": "Offshore Angler Power Plus Trophy Class Surf Spinning Rod",
+        "ec_brand": "Offshore Angler",
+        "objecttype": "Product",
+        "productinstoreonly": "0",
+        "thumbnail": "https://assets.basspro.com/image/list/fn_select:jq:first(.%5B%5D%7Cselect(.public_id%20%7C%20endswith(%22main%22)))/2231566.json?$Prod_PLPThumb$",
+        "maxpercentsavings": 0.0,
+        "isgun": "0",
+        "isproductfreeoffer": 0,
+        "category": "Fishing Rods",
+        "product_catentry_id": "53077",
+        "syssource": "BassProCatalogPROD",
+        "isdropship": "0",
+        "ec_thumbnails": "https://assets.basspro.com/image/list/fn_select:jq:first(.%5B%5D%7Cselect(.public_id%20%7C%20endswith(%22main%22)))/2231566.json?$Prod_PLPThumb$",
+        "topthumbnail": "https://assets.basspro.com/image/list/fn_select:jq:first(.%5B%5D%7Cselect(.public_id%20%7C%20endswith(%22main%22)))/2231566.json?$Prod_PLPThumb$",
+        "producturlkeyword": "offshore-angler-power-plus-trophy-class-surf-spinning-rod",
+        "field4": "2231565",
+        "minpercentsavings": 0.0,
+        "cloudinary_id": "ProductImages/151/422294-318820_main",
+        "sku": "2231566",
+        "paypalallowed": "1",
+        "source": "BassProCatalogPROD",
+        "isproductdiscounted": 0,
+        "bvreviews": 61.0,
+        "collection": "default",
+        "minofferprice": 34.99,
+        "webid": "2231565",
+        "swatchcount": 0,
+        "language": [
+          "English"
+        ],
+        "maxsavings": 0.0,
+        "isusedgun": "0",
+        "syscollection": "default"
+      },
+      "Title": "Offshore Angler Power Plus Trophy Class Surf Spinning Rod",
+      "Uri": "variant://254973",
+      "PrintableUri": "variant://254973",
+      "ClickUri": "variant://254973",
+      "UniqueId": "42.33413$variant://254973",
+      "Excerpt": "Moderate ... 4 ... 0 7' 12-20 lbs. 2024 ... Offshore Angler Power Plus Trophy Class Surf Spinning Rod - 7' ... 2231565 2 Medium ... 2231566 30988 ... 092229954189",
+      "FirstSentences": null
+    },
+    {
+      "title": "Bass Pro Shops Graphite Series Spinning Rod",
+      "uri": "variant://3074457345621780690",
+      "printableUri": "variant://3074457345621780690",
+      "clickUri": "variant://3074457345621780690",
+      "uniqueId": "synthetic$variant://9999001",
+      "primaryid": "PJNMHMLFGPB3A2SPMJEUKNBXKBAVELRTGM2DCMZOMRSWMYLVNR2A",
+      "excerpt": "0 5'6\" 2-8 lbs. GSS56LS-2 ... Bass Pro Shops Graphite Series Spinning Rod - 5'6\" - Light - 2 Pieces - A ... 101048321 ... Light ... 3234179 Crappie ... 57403 ... 900005544175",
+      "firstSentences": null,
+      "summary": null,
+      "flags": "HasHtmlVersion;SkipSentencesScoring;HasAllMetaDataStream",
+      "hasHtmlVersion": true,
+      "hasMobileHtmlVersion": false,
+      "score": 6447,
+      "percentScore": 100.0,
+      "rankingInfo": null,
+      "rating": 0.0,
+      "isTopResult": false,
+      "isRecommendation": false,
+      "isUserActionView": false,
+      "titleHighlights": [],
+      "firstSentencesHighlights": [],
+      "excerptHighlights": [],
+      "printableUriHighlights": [],
+      "summaryHighlights": [],
+      "parentResult": null,
+      "childResults": [],
+      "totalNumberOfChildResults": 11,
+      "absentTerms": [],
+      "raw": {
+        "isproductcluboffer": "0",
+        "systitle": "Bass Pro Shops Graphite Series Spinning Rod (SALE - synthetic)",
+        "minlistprice": 49.99,
+        "sysurihash": "zZ\u00f1e3\u00f0jObIE47PAR",
+        "sku_catentry_id": "3074457345621780690",
+        "urihash": "zZ\u00f1e3\u00f0jObIE47PAR",
+        "bvavgrating": 3.7543,
+        "isseamless": "0",
+        "isproductclboffer": "0",
+        "inactiveskus": "3234182",
+        "offerprice": 39.99,
+        "subcategory": "Spinning",
+        "ec_rating": 3.7543,
+        "brand": "Bass Pro Shops",
+        "ismacksexclusive": "0",
+        "buyable": "1",
+        "isnew": "0",
+        "isgiftcard": "0",
+        "iscustomizable": "0",
+        "hasdisclaimer": "1",
+        "isproductspecialoffer": "0",
+        "permanentid": "9999001",
+        "isclboffer": "0",
+        "syslanguage": [
+          "English"
+        ],
+        "isproductclubexclusive": "0",
+        "maxlistprice": 49.99,
+        "listprice": 49.99,
+        "minsavings": 0.0,
+        "childcount": 11,
+        "maxofferprice": 39.99,
+        "title": "Bass Pro Shops Graphite Series Spinning Rod (SALE - synthetic)",
+        "ec_brand": "Bass Pro Shops",
+        "issuppressor": "0",
+        "objecttype": "Product",
+        "productinstoreonly": "0",
+        "thumbnail": "https://assets.basspro.com/image/list/fn_select:jq:first(.%5B%5D%7Cselect(.public_id%20%7C%20endswith(%22main%22)))/3234179.json?$Prod_PLPThumb$",
+        "maxpercentsavings": 0.0,
+        "isgun": "0",
+        "isproductfreeoffer": 0,
+        "category": "Fishing Rods",
+        "product_catentry_id": "3074457345621780159",
+        "syssource": "BassProCatalogPROD",
+        "isdropship": "0",
+        "ec_thumbnails": "https://assets.basspro.com/image/list/fn_select:jq:first(.%5B%5D%7Cselect(.public_id%20%7C%20endswith(%22main%22)))/3234179.json?$Prod_PLPThumb$",
+        "topthumbnail": "https://assets.basspro.com/image/list/fn_select:jq:first(.%5B%5D%7Cselect(.public_id%20%7C%20endswith(%22main%22)))/3234179.json?$Prod_PLPThumb$",
+        "producturlkeyword": "bass-pro-shops-graphite-series-spinning-rod-sale-synthetic",
+        "field4": "3234178",
+        "minpercentsavings": 0.0,
+        "cloudinary_id": "ProductImages/100/422283-318741_main",
+        "sku": "9999001",
+        "paypalallowed": "1",
+        "source": "BassProCatalogPROD",
+        "isproductdiscounted": 1,
+        "bvreviews": 289.0,
+        "collection": "default",
+        "minofferprice": 39.99,
+        "webid": "101048321",
+        "swatchcount": 0,
+        "language": [
+          "English"
+        ],
+        "maxsavings": 0.0,
+        "isusedgun": "0",
+        "syscollection": "default"
+      },
+      "Title": "Bass Pro Shops Graphite Series Spinning Rod",
+      "Uri": "variant://3074457345621780690",
+      "PrintableUri": "variant://3074457345621780690",
+      "ClickUri": "variant://3074457345621780690",
+      "UniqueId": "42.33413$variant://3074457345621780690",
+      "Excerpt": "0 5'6\" 2-8 lbs. GSS56LS-2 ... Bass Pro Shops Graphite Series Spinning Rod - 5'6\" - Light - 2 Pieces - A ... 101048321 ... Light ... 3234179 Crappie ... 57403 ... 900005544175",
+      "FirstSentences": null
+    }
+  ],
+  "extendedResults": {}
+}

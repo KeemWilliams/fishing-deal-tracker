@@ -40,6 +40,7 @@ def _register_builtin_adapters() -> None:
     # adapter directly without loading every retailer's dependencies).
     from fpt.adapters.academy import AcademyAdapter
     from fpt.adapters.alltackle import AlltackleAdapter
+    from fpt.adapters.basspro import BassProAdapter
     from fpt.adapters.discounttackle import DiscountTackleAdapter
     from fpt.adapters.fishingonline import FishingOnlineAdapter
     from fpt.adapters.fishusa import FishUSAAdapter
@@ -66,6 +67,11 @@ def _register_builtin_adapters() -> None:
     register(FishingOnlineAdapter())
     register(DiscountTackleAdapter())
     register(RodLockerAdapter())
+    # Bass Pro Shops -- added in this task (2026-09-13). Coveo search-JSON
+    # parser only; the Akamai-aware real-browser fetch mechanism for this
+    # retailer is a separate, out-of-scope concern (see
+    # fpt/adapters/basspro.py module docstring).
+    register(BassProAdapter())
 
 
 _register_builtin_adapters()
