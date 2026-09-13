@@ -4,8 +4,18 @@ import type { DealsFeed, FeedMeta, Product } from './types';
 
 // Build-time feed loader. Astro pages are statically generated, so this runs
 // during `astro build` / `astro dev`, never in the browser -- see
-// public/scripts/refresh.js for the client-side re-check that runs after
-// the page has loaded.
+// public/scripts/feed-status.js for the client-side re-check that runs after
+// the page has loaded (that one *does* use PUBLIC_FEED_BASE_URL, over HTTP,
+// because it runs in the visitor's browser after the feed is already
+// published -- there's no chicken-and-egg problem there).
+//
+// This module used to `fetch()` PUBLIC_FEED_BASE_URL at build time too, but
+// on GitHub Pages the export and the site build happen in the same CI run
+// (see .github/workflows/pages.yml): the feed the build would fetch isn't
+// published anywhere yet when the build starts. Reading the exported
+// `latest/` tree straight off the runner's filesystem (FEED_LOCAL_DIR, set
+// by `fpt export --storage local` a step earlier in that workflow) avoids
+// the chicken-and-egg problem entirely.
 //
 // Contract: apps/fishing-price-tracker/contracts/export.schema.json
 // (architecture doc section 3.4). This site only reads the export; it never
@@ -29,27 +39,33 @@ function isProductionBuild(): boolean {
   return Boolean(process.env.CF_PAGES) || process.env.NODE_ENV === 'production';
 }
 
-function feedBaseUrl(): string | undefined {
-  const base = import.meta.env.PUBLIC_FEED_BASE_URL;
-  if (!base) {
+/**
+ * Directory holding an exported feed's `latest/` tree (meta.json,
+ * deals.json, products/<slug>.json) -- the same base directory
+ * `EXPORT_LOCAL_DIR` pointed `python run.py export` at (see
+ * fpt/export/storage.py's LocalStorage, which always writes under
+ * `<base>/latest/...`). Returns `undefined` only when it's safe to fall
+ * back to the bundled sample feed (local, non-production dev).
+ */
+export function feedLocalDir(): string | undefined {
+  const dir = process.env.FEED_LOCAL_DIR;
+  if (!dir) {
     if (isProductionBuild()) {
       throw new Error(
-        'PUBLIC_FEED_BASE_URL is not set. Refusing to fall back to bundled sample data in a ' +
-          'production build (CF_PAGES or NODE_ENV=production) -- set PUBLIC_FEED_BASE_URL in the ' +
-          'deploy environment. Sample data is for local development only (NODE_ENV=development).'
+        'FEED_LOCAL_DIR is not set. Refusing to fall back to bundled sample data in a ' +
+          'production build (CF_PAGES or NODE_ENV=production) -- set FEED_LOCAL_DIR to the ' +
+          'directory an `fpt export` (EXPORT_STORAGE_BACKEND=local) run wrote to. Sample data ' +
+          'is for local development only (NODE_ENV=development).'
       );
     }
     return undefined;
   }
-  return base.replace(/\/+$/, '');
+  return dir;
 }
 
-async function fetchJson<T>(url: string): Promise<T> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Feed fetch failed: ${url} returned ${res.status}`);
-  }
-  return (await res.json()) as T;
+async function readLocalJson<T>(dir: string, relPath: string): Promise<T> {
+  const raw = await readFile(resolve(dir, 'latest', relPath), 'utf-8');
+  return JSON.parse(raw) as T;
 }
 
 async function readSampleJson<T>(relativePath: string): Promise<T> {
@@ -67,31 +83,31 @@ function assertSchemaVersion(version: number, source: string): void {
 }
 
 export async function loadMeta(): Promise<FeedMeta> {
-  const base = feedBaseUrl();
-  if (!base) {
+  const dir = feedLocalDir();
+  if (!dir) {
     const meta = await readSampleJson<FeedMeta>('latest/meta.json');
     return { ...meta, is_sample_data: true };
   }
-  const meta = await fetchJson<FeedMeta>(`${base}/meta.json`);
-  assertSchemaVersion(meta.schema_version, `${base}/meta.json`);
+  const meta = await readLocalJson<FeedMeta>(dir, 'meta.json');
+  assertSchemaVersion(meta.schema_version, `${dir}/latest/meta.json`);
   return meta;
 }
 
 export async function loadDeals(): Promise<DealsFeed> {
-  const base = feedBaseUrl();
-  if (!base) {
+  const dir = feedLocalDir();
+  if (!dir) {
     return readSampleJson<DealsFeed>('latest/deals.json');
   }
-  return fetchJson<DealsFeed>(`${base}/deals.json`);
+  return readLocalJson<DealsFeed>(dir, 'deals.json');
 }
 
 export async function loadProduct(slug: string): Promise<Product | null> {
-  const base = feedBaseUrl();
+  const dir = feedLocalDir();
   try {
-    if (!base) {
+    if (!dir) {
       return await readSampleJson<Product>(`products/${slug}.json`);
     }
-    return await fetchJson<Product>(`${base}/products/${slug}.json`);
+    return await readLocalJson<Product>(dir, `products/${slug}.json`);
   } catch {
     return null;
   }

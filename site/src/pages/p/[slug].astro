@@ -5,14 +5,14 @@ import WatchAlertPlaceholder from '../../components/WatchAlertPlaceholder.astro'
 import ProductImage from '../../components/ProductImage.astro';
 import DiscountPriceBlock from '../../components/DiscountPriceBlock.astro';
 import PriceSparkline from '../../components/PriceSparkline.astro';
-import { loadDeals, loadAllSampleProducts, loadProduct } from '../../lib/feed';
+import { loadDeals, loadAllSampleProducts, loadProduct, feedLocalDir } from '../../lib/feed';
 import { formatCents, formatAbsoluteTime, categoryLabel, computeVariantDiscount } from '../../lib/format';
 import { safeRetailerUrl } from '../../lib/safe-url';
 
 export async function getStaticPaths() {
-  const base = import.meta.env.PUBLIC_FEED_BASE_URL;
+  const dir = feedLocalDir();
 
-  if (!base) {
+  if (!dir) {
     // Local/sample mode: every bundled sample product gets a page.
     const products = await loadAllSampleProducts();
     return products.map((product) => ({

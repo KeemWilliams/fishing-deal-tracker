@@ -2,6 +2,7 @@
 import type { FeedMeta } from '../lib/types';
 import { isFeedStale } from '../lib/feed';
 import { formatAbsoluteTime } from '../lib/format';
+import { BASE_URL } from '../lib/site-config';
 
 interface Props {
   meta: FeedMeta;
@@ -33,4 +34,4 @@ const feedBaseUrl = import.meta.env.PUBLIC_FEED_BASE_URL ?? '';
   </span>
 </div>
 
-<script is:inline src="/scripts/feed-status.js" defer></script>
+<script is:inline src={`${BASE_URL}scripts/feed-status.js`} defer></script>

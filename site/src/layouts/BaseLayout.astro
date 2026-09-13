@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { SITE_NAME, SITE_TAGLINE } from '../lib/site-config';
+import { SITE_NAME, SITE_TAGLINE, BASE_URL } from '../lib/site-config';
 
 interface Props {
   title?: string;
@@ -18,7 +18,7 @@ const pageTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — ${SITE_T
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={`${BASE_URL}favicon.svg`} />
   </head>
   <body class="min-h-screen bg-neutral-50 text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100">
     <a
@@ -29,13 +29,13 @@ const pageTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — ${SITE_T
     </a>
     <header class="sticky top-0 z-40 border-b border-neutral-200/80 bg-white/80 backdrop-blur-md dark:border-white/10 dark:bg-neutral-950/80">
       <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
-        <a href="/" class="text-lg font-bold tracking-tight text-neutral-900 dark:text-white">
+        <a href={BASE_URL} class="text-lg font-bold tracking-tight text-neutral-900 dark:text-white">
           {SITE_NAME}
         </a>
         <nav aria-label="Primary">
           <ul class="flex items-center gap-5 text-sm font-medium text-neutral-600 dark:text-neutral-400">
-            <li><a class="transition-colors hover:text-neutral-900 dark:hover:text-white" href="/">Deals</a></li>
-            <li><a class="transition-colors hover:text-neutral-900 dark:hover:text-white" href="/how-we-verify/">How we verify</a></li>
+            <li><a class="transition-colors hover:text-neutral-900 dark:hover:text-white" href={BASE_URL}>Deals</a></li>
+            <li><a class="transition-colors hover:text-neutral-900 dark:hover:text-white" href={`${BASE_URL}how-we-verify/`}>How we verify</a></li>
           </ul>
         </nav>
       </div>
@@ -52,9 +52,9 @@ const pageTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — ${SITE_T
           publishes drops of 50% or more. We link out to retailers directly — no affiliate tags.
         </p>
         <nav aria-label="Footer" class="mt-4 flex flex-wrap gap-4">
-          <a class="hover:text-neutral-700 hover:underline dark:hover:text-neutral-200" href="/how-we-verify/">How we verify deals</a>
-          <a class="hover:text-neutral-700 hover:underline dark:hover:text-neutral-200" href="/bot/">About our crawler</a>
-          <a class="hover:text-neutral-700 hover:underline dark:hover:text-neutral-200" href="/privacy/">Privacy</a>
+          <a class="hover:text-neutral-700 hover:underline dark:hover:text-neutral-200" href={`${BASE_URL}how-we-verify/`}>How we verify deals</a>
+          <a class="hover:text-neutral-700 hover:underline dark:hover:text-neutral-200" href={`${BASE_URL}bot/`}>About our crawler</a>
+          <a class="hover:text-neutral-700 hover:underline dark:hover:text-neutral-200" href={`${BASE_URL}privacy/`}>Privacy</a>
         </nav>
       </div>
     </footer>

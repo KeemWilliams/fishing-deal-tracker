@@ -2,6 +2,7 @@
 import type { Deal } from '../lib/types';
 import { formatRelativeTime, categoryLabel, discountReferenceCaption } from '../lib/format';
 import { safeRetailerUrl } from '../lib/safe-url';
+import { BASE_URL } from '../lib/site-config';
 import ConditionBadge from './ConditionBadge.astro';
 import ProductImage from './ProductImage.astro';
 import DiscountPriceBlock from './DiscountPriceBlock.astro';
@@ -24,7 +25,7 @@ const laneClass: Record<Deal['lane'], string> = {
   USED: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400',
 };
 
-const productHref = `/p/${deal.product_slug}/`;
+const productHref = `${BASE_URL}p/${deal.product_slug}/`;
 const priceToShow = deal.landed_price_cents ?? deal.price_cents;
 const showsLandedNote = deal.landed_price_cents !== null && deal.landed_price_cents !== deal.price_cents;
 const outboundUrl = safeRetailerUrl(deal.retailer_url, deal.retailer_slug);

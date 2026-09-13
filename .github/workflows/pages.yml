@@ -1,0 +1,104 @@
+name: Deploy Pages
+
+# Builds the Astro site (site/) as a GitHub Pages PROJECT site at
+# https://keemwilliams.github.io/fishing-deal-tracker/ and publishes it.
+#
+# Feed data comes from a fresh `python run.py export` run in this same job
+# (EXPORT_STORAGE_BACKEND=local), NOT from an HTTP fetch of a previously
+# published feed -- see site/src/lib/feed.ts for why: the site's build-time
+# feed loader reads the exported `latest/` tree straight off this runner's
+# filesystem, avoiding a chicken-and-egg wait on the feed it's about to
+# publish. The exported files are also copied into site/public/feed/ so the
+# built site can serve them at /fishing-deal-tracker/feed for the
+# client-side stale-feed poll (public/scripts/feed-status.js).
+#
+# This repo is a `git subtree split -P apps/fishing-price-tracker` mirror of
+# the monorepo path of the same name -- the orchestrator (not this
+# workflow) handles that sync. From here, `site/`, `run.py`, `fpt/`,
+# `requirements.txt` etc. are all at the repo root, same as crawl.yml.
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    # ~30-40 min after crawl.yml's confirmation pass (10:37 UTC), so the feed
+    # export has fresh, re-confirmed deals to publish.
+    - cron: "50 10 * * *"
+  workflow_run:
+    workflows: ["Daily crawl"]
+    types: [completed]
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    # workflow_run fires on every completion of the crawl workflow, including
+    # failed/cancelled runs -- only build+deploy when it actually succeeded.
+    # workflow_dispatch and schedule triggers have no workflow_run context,
+    # so they always pass this check.
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      EXPORT_STORAGE_BACKEND: local
+      EXPORT_LOCAL_DIR: ${{ github.workspace }}/.export_output
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Export deals feed
+        run: python run.py export
+
+      - name: Copy feed into site/public/feed
+        run: |
+          mkdir -p site/public/feed
+          cp -r "${EXPORT_LOCAL_DIR}/latest/." site/public/feed/
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install site dependencies
+        working-directory: site
+        run: npm ci
+
+      - name: Build site
+        working-directory: site
+        env:
+          FEED_LOCAL_DIR: ${{ env.EXPORT_LOCAL_DIR }}
+          PUBLIC_FEED_BASE_URL: /fishing-deal-tracker/feed
+        run: npm run build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

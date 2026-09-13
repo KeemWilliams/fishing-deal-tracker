@@ -1,5 +1,6 @@
 ---
 import { categoryLabel } from '../lib/format';
+import { BASE_URL } from '../lib/site-config';
 
 interface Props {
   categories: string[];
@@ -67,4 +68,4 @@ const selectClass =
   <p class="text-xs text-neutral-400 dark:text-neutral-500" id="filter-result-count" role="status" aria-live="polite"></p>
 </form>
 
-<script is:inline src="/scripts/filters.js" defer></script>
+<script is:inline src={`${BASE_URL}scripts/filters.js`} defer></script>
