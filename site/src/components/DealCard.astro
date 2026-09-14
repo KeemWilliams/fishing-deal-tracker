@@ -1,6 +1,6 @@
 ---
 import type { Deal } from '../lib/types';
-import { formatRelativeTime, categoryLabel, discountReferenceCaption } from '../lib/format';
+import { formatRelativeTime, categoryLabel, discountReferenceCaption, displayProductName } from '../lib/format';
 import { safeRetailerUrl } from '../lib/safe-url';
 import { BASE_URL } from '../lib/site-config';
 import ConditionBadge from './ConditionBadge.astro';
@@ -31,7 +31,8 @@ const showsLandedNote = deal.landed_price_cents !== null && deal.landed_price_ce
 const outboundUrl = safeRetailerUrl(deal.retailer_url, deal.retailer_slug);
 const referenceCents = deal.reference?.cents ?? deal.claimed_reference?.cents ?? null;
 const caption = discountReferenceCaption(deal);
-const imageAlt = `${deal.product_name}, ${deal.variant_label}`;
+const productName = displayProductName(deal.product_name, deal.product_slug);
+const imageAlt = `${productName}, ${deal.variant_label}`;
 ---
 
 <article
@@ -67,7 +68,7 @@ const imageAlt = `${deal.product_name}, ${deal.variant_label}`;
       </p>
       <h3 class="mt-0.5 text-base font-semibold leading-snug text-neutral-900 dark:text-white">
         <a href={productHref} class="hover:underline focus:underline">
-          {deal.product_name}
+          {productName}
         </a>
       </h3>
       <p class="text-sm text-neutral-500 dark:text-neutral-400">{deal.variant_label}</p>

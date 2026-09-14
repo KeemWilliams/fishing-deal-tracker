@@ -102,6 +102,41 @@ export function dealTierLabel(tier: DealQualityTier): string {
   return TIER_LABELS[tier] ?? tier;
 }
 
+const PLACEHOLDER_PRODUCT_NAMES = new Set(['default title', 'default', '']);
+
+function titleizeSlug(slug: string): string {
+  return slug
+    .split('-')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+/**
+ * Some single-variant Shopify listings never get a real product title set
+ * beyond the store's default variant name, so `product_name`/`product.name`
+ * comes through literally as "Default Title" (or empty) rather than the
+ * real product -- every case observed in production so far still has the
+ * real name embedded in the product slug (e.g.
+ * "vendetta-ice-spinning-rod" -> "Vendetta Ice Spinning Rod"), so this
+ * falls back to a titleized slug rather than showing the placeholder
+ * verbatim. Display-layer patch only: the durable fix belongs upstream, in
+ * the Shopify adapter/catalog layer that first resolves `title_raw`/
+ * `model_key` (out of scope here -- flagged in HANDOFF).
+ */
+export function displayProductName(name: string, slug: string): string {
+  // Some Shopify listings concatenate the default-variant name onto the
+  // FRONT of the real product title instead of the title being exactly
+  // "Default Title" (e.g. "Default Title Vendetta Ice Spinning Rod") --
+  // strip that prefix before the exact-match placeholder check below.
+  // Stripping first also matters for the slug fallback: the product slug
+  // is derived from this SAME contaminated name upstream, so titleizing
+  // it would reproduce the same prefix rather than fixing anything.
+  const stripped = (name?.trim() ?? '').replace(/^default title\s+/i, '').trim();
+  if (stripped && !PLACEHOLDER_PRODUCT_NAMES.has(stripped.toLowerCase())) return stripped;
+  return titleizeSlug(slug.replace(/^default-title-/i, ''));
+}
+
 /**
  * Short caption for what a deal's discount percentage is measured against --
  * shown as a small line under the big discount number so the number is never

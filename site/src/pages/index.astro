@@ -16,13 +16,20 @@ const meta = await loadMeta();
 
 try {
   const feed = await loadDeals();
-  // CLAIMED-lane deals (a retailer's own claimed "MSRP"/"was" price, not a
-  // price we've observed elsewhere) are hidden for now -- we don't yet have
-  // enough of our own price history to sanity-check a retailer's claim, so
-  // showing them risks amplifying an inflated "was" price as if it were a
-  // real discount. The `Lane` type and CLAIMED rendering in DealCard stay in
-  // place so this can be re-enabled once we have that history.
-  deals = feed.deals.filter((deal) => deal.lane !== 'CLAIMED');
+  // Policy REVERSED (2026-09-13, mirrors fpt/export/queries.py's
+  // `_ACTIVE_DEALS_SQL` fix): this used to filter out every CLAIMED-lane
+  // deal -- a retailer's own claimed "MSRP"/"was" price rather than a
+  // price we've independently verified. With the listing-ingest
+  // confirmation path now the primary source of ACTIVE deals, that made
+  // this a SECOND, site-side copy of the old server-side filter: the
+  // exporter already stopped dropping CLAIMED-lane deals, but this filter
+  // re-dropped every one of them again at render time, so the live feed's
+  // 25 real deals rendered as the empty state. CLAIMED-lane deals still go
+  // through the same 50%+ confirmation checks as any other lane -- only
+  // their reference is the retailer's own claim rather than independently
+  // verified, which `DealCard.astro`'s "claimed price" badge and disclaimer
+  // (line ~88) already exist specifically to disclose.
+  deals = feed.deals;
 } catch (err) {
   loadError = err instanceof Error ? err.message : 'Unknown error loading the deals feed.';
 }

@@ -6,7 +6,7 @@ import ProductImage from '../../components/ProductImage.astro';
 import DiscountPriceBlock from '../../components/DiscountPriceBlock.astro';
 import PriceSparkline from '../../components/PriceSparkline.astro';
 import { loadDeals, loadAllSampleProducts, loadProduct, feedLocalDir } from '../../lib/feed';
-import { formatCents, formatAbsoluteTime, categoryLabel, computeVariantDiscount } from '../../lib/format';
+import { formatCents, formatAbsoluteTime, categoryLabel, computeVariantDiscount, displayProductName } from '../../lib/format';
 import { safeRetailerUrl } from '../../lib/safe-url';
 
 export async function getStaticPaths() {
@@ -40,26 +40,27 @@ export async function getStaticPaths() {
 const { product } = Astro.props;
 const galleryImages = (product.images ?? []).filter((url): url is string => Boolean(url));
 const heroImage = galleryImages[0] ?? null;
+const productName = displayProductName(product.name, product.slug);
 ---
 
-<BaseLayout title={product.name} description={`Price history and current offers for the ${product.name}.`}>
+<BaseLayout title={productName} description={`Price history and current offers for the ${productName}.`}>
   <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6">
     <p class="text-xs font-medium uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
       {categoryLabel(product.category)} · {product.brand}
     </p>
-    <h1 class="mt-1 text-2xl font-bold tracking-tight text-neutral-900 dark:text-white sm:text-3xl">{product.name}</h1>
+    <h1 class="mt-1 text-2xl font-bold tracking-tight text-neutral-900 dark:text-white sm:text-3xl">{productName}</h1>
 
     <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-4">
       <ProductImage
         src={heroImage}
-        alt={product.name}
+        alt={productName}
         eager={true}
         class="col-span-4 rounded-2xl sm:col-span-3"
       />
       {galleryImages.length > 1 && (
         <div class="col-span-4 flex gap-2 overflow-x-auto sm:col-span-1 sm:flex-col sm:overflow-visible">
           {galleryImages.slice(1, 5).map((url, i) => (
-            <ProductImage src={url} alt={`${product.name}, photo ${i + 2}`} class="w-24 shrink-0 rounded-xl sm:w-full" />
+            <ProductImage src={url} alt={`${productName}, photo ${i + 2}`} class="w-24 shrink-0 rounded-xl sm:w-full" />
           ))}
         </div>
       )}
